@@ -6,7 +6,7 @@ import google from "../../public/google.png";
 import { Button } from "./ui/button";
 
 export default function SignIn() {
-  const [isLoading, _setIsLoading] = useState(false);
+  const [isLoading] = useState(false);
   const login = () => {
     window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/google`;
   };
