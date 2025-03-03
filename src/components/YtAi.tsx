@@ -37,7 +37,7 @@ const YtAi = ({ videoId }: YtAiProps) => {
 
     try {
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/ask`,
+        `${process.env.NEXT_PUBLIC_API_URL}/note/ask`,
         {
           video_id: videoId,
           question: question,

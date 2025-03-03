@@ -1,11 +1,10 @@
 import Main from "@/components/Main";
 
-const page = () => {
+// Server component that receives params as props
+export default function Page() {
   return (
     <div className="flex">
       <Main />
     </div>
   );
-};
-
-export default page;
+}

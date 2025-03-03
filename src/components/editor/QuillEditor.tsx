@@ -1,15 +1,14 @@
 "use client";
 import hljs from "highlight.js";
-import "highlight.js/styles/atom-one-dark.min.css"; // Import highlight.js styles
+import "highlight.js/styles/atom-one-dark.min.css"; 
 import Quill from "quill";
-import "quill/dist/quill.snow.css"; // Import Quill styles
+import Delta from "quill-delta";
+import "quill/dist/quill.snow.css"; 
 import { useEffect, useRef } from "react";
-// import katex from "katex";
 import { useContentContext } from "@/app/context/YoutubeContext";
-import "katex/dist/katex.min.css"; // Import KaTeX styles
+import "katex/dist/katex.min.css"; 
 
-
-
+// Change the component declaration to use const
 const QuillEditor = () => {
   const quillRef = useRef<HTMLDivElement>(null);
   const quillInstanceRef = useRef<Quill | null>(null);
@@ -23,7 +22,7 @@ const QuillEditor = () => {
       const quill = new Quill(quillRef.current, {
         modules: {
           syntax: {
-            highlight: (text) => hljs.highlightAuto(text).value,
+            highlight: (text: string) => hljs.highlightAuto(text).value,
           },
           toolbar: [
             [{ size: [] }],
@@ -53,20 +52,13 @@ const QuillEditor = () => {
           setContent(JSON.stringify(delta));
         }
       });
-      // const Delta = Quill.import("delta");
-      // // Set initial content
-      // // Define initial content
-      // const initialContent = new Delta();
-
-      // quill.setContents(initialContent);
     }
-  }, []);
-  // Update editor when content changes in context
+  }, [setContent]);
   // Update editor when content changes in context
   useEffect(() => {
     if (quillInstanceRef.current && content) {
       try {
-        let deltaContent;
+        let deltaContent: Delta;
 
         // Parse content if it's a string
         if (typeof content === "string") {
@@ -79,20 +71,27 @@ const QuillEditor = () => {
               !deltaContent.ops &&
               Array.isArray(deltaContent)
             ) {
-              deltaContent = { ops: deltaContent };
+              deltaContent = new Delta({ ops: deltaContent });
             }
           } catch (parseError) {
             console.error("JSON parse error:", parseError);
-            // If JSON parsing fails but it's a string, treat as plain text
-            deltaContent = { ops: [{ insert: content }] };
+            deltaContent = new Delta([{ insert: content }]);
+          }
+          if (quillInstanceRef.current) {
+            requestAnimationFrame(() => {
+              document
+                .querySelectorAll("pre code")
+                .forEach((block) =>
+                  hljs.highlightElement(block as HTMLElement)
+                );
+            });
           }
         } else {
           // Content is already an object
-          deltaContent = content;
+          deltaContent = new Delta(content);
 
-          // Ensure it has the proper structure
           if (!deltaContent.ops && Array.isArray(deltaContent)) {
-            deltaContent = { ops: deltaContent };
+            deltaContent = new Delta({ ops: deltaContent });
           }
         }
 

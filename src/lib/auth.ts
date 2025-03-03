@@ -24,7 +24,7 @@ export function useAuth() {
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 401) {
         try {
-          await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/refresh`, {
+          await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/refresh`, {
             withCredentials: true
           });
           await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/logout`, {}, {

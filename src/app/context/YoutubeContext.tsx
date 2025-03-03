@@ -7,13 +7,15 @@ type ContentContextType = {
   setContent: (content: string) => void;
   videoId: string;
   setVideoId: (id: string) => void;
+  
 };
 
 const ContentContext = createContext<ContentContextType>({
   content: "",
   setContent: () => {},
   videoId: "",
-  setVideoId: () => {},
+  setVideoId: () => {}
+  
 });
 
 export function ContentProvider({ children }: { children: React.ReactNode }) {
@@ -22,7 +24,7 @@ export function ContentProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <ContentContext.Provider
-      value={{ content, setContent, videoId, setVideoId }}
+      value={{ content, setContent, videoId, setVideoId}}
     >
       {children}
     </ContentContext.Provider>

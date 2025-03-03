@@ -15,13 +15,14 @@ import {
   Trash,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 
 type File = {
   id: string;
   name: string;
   video_id: string;
-  content:string
+  content: string;
 };
 
 type Node = {
@@ -35,7 +36,7 @@ type Node = {
 type NodeProps = {
   folder: Node;
   siblings: Node[];
-  onCreateFolder: (parentFolderName: string) => void;
+  onCreateFolder: (parentFolderName: string, foldername: string) => void;
   onCreateNote: (folderId: string, newNote: string, youtubeUrl: string) => void;
   onDeleteFolder: (folderId: string) => void;
   onRenameFolder: (folderId: string, newFolderName: string) => void;
@@ -55,16 +56,21 @@ const Node = ({
 }: NodeProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isOpenFileInput, setIsOpenFileInput] = useState(false);
+  const [isOpenFolderInput, setIsOpenFolderInput] = useState(false);
+  const [newFolderInput, setNewFolderInput] = useState("");
   const [youtubeUrl, setYoutubeUrl] = useState("");
-  const [isHovered, setIsHovered] = useState(false);
+  const [isFolderHovered, setIsFolderHovered] = useState(false);
+  const [hoveredFileId, setHoveredFileId] = useState<string | null>(null);
   const [isRenamingFolder, setIsRenamingFolder] = useState(false);
-  const [isRenamingFile, setIsRenamingFile] = useState<string | null>(null); // Track which file is being renamed
+  const [isRenamingFile, setIsRenamingFile] = useState<string | null>(null);
   const [newFolderName, setNewFolderName] = useState(folder.name);
   const [newNote, setNewNote] = useState("");
   const [isDialogOpenFolder, setIsDialogOpenFolder] = useState(false);
-  const [isDialogOpenFile, setIsDialogOpenFile] = useState<string | null>(null); // Track which file's dialog is open
-  const dialogRef = useRef<HTMLDivElement>(null);
+  const [isDialogOpenFile, setIsDialogOpenFile] = useState<string | null>(null);
+  const folderDialogRef = useRef<HTMLDivElement>(null);
+  const fileDialogRef = useRef<HTMLDivElement>(null);
   const { setVideoId, setContent } = useContentContext();
+  const router = useRouter();
   const handleRenameFolder = () => {
     const trimmedName = newFolderName.trim();
 
@@ -136,17 +142,19 @@ const Node = ({
 
   const handleDialogBoxFile = (fileName: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setIsDialogOpenFile(isDialogOpenFile === fileName ? null : fileName); // Toggle dialog for the specific file
+    setIsDialogOpenFile(isDialogOpenFile === fileName ? null : fileName);
   };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        dialogRef.current &&
-        !dialogRef.current.contains(event.target as HTMLElement)
+        folderDialogRef.current &&
+        !folderDialogRef.current.contains(event.target as HTMLElement) &&
+        fileDialogRef.current &&
+        !fileDialogRef.current.contains(event.target as HTMLElement)
       ) {
         setIsDialogOpenFolder(false);
-        setIsDialogOpenFile(null); // Close all file dialogs
+        setIsDialogOpenFile(null);
       }
     };
     const handleEscapeKey = (event: KeyboardEvent) => {
@@ -173,10 +181,10 @@ const Node = ({
   return (
     <li className="mb-1 group">
       <div
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        onMouseEnter={() => setIsFolderHovered(true)}
+        onMouseLeave={() => setIsFolderHovered(false)}
         className={`flex justify-between items-center gap-1 ${
-          isHovered ? "bg-gray-100" : ""
+          isFolderHovered ? "bg-purple-200" : ""
         }`}
       >
         <div className="py-1 flex gap-1 w-full">
@@ -208,7 +216,7 @@ const Node = ({
           ) : (
             <div className="flex items-center justify-between w-full">
               <span>{folder.name}</span>
-              {!isRenamingFolder && isHovered && (
+              {!isRenamingFolder && isFolderHovered && (
                 <MoreHorizontal
                   onClick={handleDialogBoxFolder}
                   className="size-6 cursor-pointer"
@@ -220,15 +228,14 @@ const Node = ({
       </div>
       {isDialogOpenFolder && (
         <div
-          ref={dialogRef}
+          ref={folderDialogRef}
           className="absolute left-[200px] -mt-6 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5"
         >
           <div className="py-1">
             <button
               onClick={() => {
-                onCreateFolder(folder.id);
+                setIsOpenFolderInput(true); // Open dialog instead of creating folder directly
                 setIsDialogOpenFolder(false);
-                // setIsRenamingFolder(true)
               }}
               className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full"
             >
@@ -291,8 +298,8 @@ const Node = ({
               <li
                 key={file.id}
                 className="mb-1 py-1 group/file " // Add relative positioning
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
+                onMouseEnter={() => setHoveredFileId(file.id)}
+                onMouseLeave={() => setHoveredFileId(null)}
               >
                 <div className="flex items-center justify-between w-full">
                   {isRenamingFile === file.id ? (
@@ -315,10 +322,30 @@ const Node = ({
                   ) : (
                     <Link
                       href={`/dashboard/${file.name}`}
-                      onClick={() => {
+                      onClick={async (e) => {
+                        e.preventDefault();
                         console.log("Setting videoId from file", file.video_id);
-                        setContent(file.content);
-                        setVideoId(file.video_id);
+                        try {
+                          // Fetch file content from the backend
+                          const response = await axios.get(
+                            `${process.env.NEXT_PUBLIC_API_URL}/note/${file.id}`,
+                            {
+                              withCredentials: true,
+                            }
+                          );
+                          console.log("File data=>", response.data);
+                          // for (const[key,value] of Object.entries(response.data)){
+                          //   console.log(`${key}:${value}`)
+                          // }
+
+                          setContent(response.data.note);
+                          setVideoId(file.video_id);
+                          router.push(`/dashboard/${file.name}`);
+                        } catch (error) {
+                          console.error(
+                            `Error${error} while fetching file's content`
+                          );
+                        }
                       }}
                     >
                       <span className="flex items-center gap-1">
@@ -328,7 +355,7 @@ const Node = ({
                     </Link>
                   )}
                   <div className="opacity-0 group-hover/file:opacity-100 transition-opacity">
-                    {!isRenamingFile && isHovered && (
+                    {!isRenamingFile && hoveredFileId === file.id && (
                       <MoreHorizontal
                         onClick={(e) => handleDialogBoxFile(file.name, e)}
                         className="size-6 cursor-pointer"
@@ -338,7 +365,7 @@ const Node = ({
                 </div>
                 {isDialogOpenFile === file.name && (
                   <div
-                    ref={dialogRef}
+                    ref={fileDialogRef}
                     className="absolute left-[200px] -mt-6 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5"
                   >
                     <div className="py-1">
@@ -418,6 +445,53 @@ const Node = ({
                   }
                 }}
                 className="px-4 py-2 text-sm text-white bg-[#5d3fd3] hover:bg-[#4f35b3] rounded"
+              >
+                Create
+              </button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+      {isOpenFolderInput && (
+        <Dialog open={isOpenFolderInput} onOpenChange={setIsOpenFolderInput}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Create New Folder</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="flex flex-col gap-2">
+                <label htmlFor="newfolder">Folder name</label>
+                <input
+                  id="newfolder"
+                  type="text"
+                  value={newFolderInput}
+                  onChange={(e) => setNewFolderInput(e.target.value)}
+                  className="rounded py-2 px-3 border outline-none"
+                  placeholder="Enter folder name"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setIsOpenFolderInput(false)}
+                className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (newFolderInput.trim()) {
+                    onCreateFolder(folder.id, newFolderInput.trim());
+                    setIsOpenFolderInput(false);
+                    setNewFolderInput("");
+                  }
+                }}
+                disabled={!newFolderInput.trim()}
+                className={`px-4 py-2 text-sm text-white rounded ${
+                  newFolderInput.trim()
+                    ? "bg-[#5d3fd3] hover:bg-[#4f35b3]"
+                    : "bg-gray-400 cursor-not-allowed"
+                }`}
               >
                 Create
               </button>
