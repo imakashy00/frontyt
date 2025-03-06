@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import axios from "axios";
-import { Folder, Plus } from "lucide-react";
+import { Folder, Loader2, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Bottom from "./Bottom";
@@ -15,14 +15,23 @@ import { default as Node } from "./Node";
 import SideHeader from "./SideHeader";
 import { Button } from "./ui/button";
 
+type File = {
+  id: string;
+  name: string;
+  folder_id: string;
+  video_id: string;
+  content: string;
+};
+
 const Sidebar = () => {
   const [folders, setFolders] = useState<Node[]>([]);
-  // const [isCreatingRootFolder, setIsCreatingRootFolder] = useState(false);
-  const [newFolderName, setNewFolderName] = useState("");
+  const [newFolderName, setNewFolderName] = useState<string>("");
   const router = useRouter();
-  const { setContent, setVideoId } = useContentContext();
-  const [isRootFolderDialogOpen, setIsRootFolderDialogOpen] = useState(false);
-  const [folderNameError, setFolderNameError] = useState("");
+  const { setContent, setVideoId, setFileId } = useContentContext();
+  const [isRootFolderDialogOpen, setIsRootFolderDialogOpen] =
+    useState<boolean>(false);
+  const [folderNameError, setFolderNameError] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const getFolders = async () => {
@@ -34,15 +43,17 @@ const Sidebar = () => {
           }
         );
         // handle the response here
-        console.log(typeof res.data.folders);
-        console.log(res.data);
+        // console.log(typeof res.data.folders);
+        // console.log(res.data);
         setFolders(res.data.folders);
       } catch (error) {
         console.error(error);
+      } finally {
+        setLoading(false);
       }
     };
     getFolders();
-  }, [setFolders]);
+  }, []);
 
   const createRootFolder = (newName: string) => {
     axios
@@ -57,7 +68,7 @@ const Sidebar = () => {
         }
       )
       .then((response) => {
-        const newFolder = response.data;
+        const newFolder = response.data.folder;
         setFolders((prevFolders) => [...prevFolders, newFolder]);
         console.log("Folder created:", response.data);
       })
@@ -82,7 +93,8 @@ const Sidebar = () => {
         }
       )
       .then((response) => {
-        const newFolder = response.data;
+        const newFolder = response.data.folder;
+        console.log("Inside Folder=>", response.data);
         setFolders((prev) => addFolderToParent(prev, parentId, newFolder));
       })
       .catch((error) => {
@@ -138,24 +150,45 @@ const Sidebar = () => {
       )
       .then((response) => {
         // Update local state with new note
+        console.log("Created Note=>", response.data);
         setFolders((prev) =>
-          prev.map((folder) => {
-            if (folder.id === folderId) {
-              return {
-                ...folder,
-                files: [...(folder.files || []), response.data],
-              };
-            }
-            return folder;
-          })
+          addFileToFolder(prev, folderId, response.data.note as File)
         );
         setContent(response.data.notes || "");
         setVideoId(response.data.video_id);
+        setFileId(response.data.id);
         router.push(`/dashboard/${newNote}`);
       })
       .catch((error) => {
         console.error("Error creating note:", error.response?.data || error);
       });
+  };
+
+  const addFileToFolder = (
+    nodes: Node[],
+    folderId: string,
+    newFile: File
+  ): Node[] => {
+    return nodes.map((node) => {
+      // if this is the target folder add the file
+      if (node.id === folderId) {
+        return {
+          ...node,
+          files: [...(node.files || []), newFile],
+        };
+      }
+
+      // Check subfolders recursively
+      if (node.subfolders && node.subfolders.length > 0) {
+        return {
+          ...node,
+          subfolders: addFileToFolder(node.subfolders, folderId, newFile),
+        };
+      }
+
+      // Return the node unchanged if not the target folder and has no subfolders
+      return node;
+    });
   };
 
   const deleteFolder = (folderId: string) => {
@@ -164,13 +197,37 @@ const Sidebar = () => {
         withCredentials: true,
       })
       .then((response) => {
-        // Remove folder from state after successful deletion
-        setFolders((prev) => prev.filter((folder) => folder.id !== folderId));
-        console.log(response.data);
+        // Update state by recursively removing the folder
+        setFolders((prev) => removeFolderFromTree(prev, folderId));
+
+        // Navigate to dashboard if needed
+        router.push("/dashboard");
+
+        console.log("Folder deleted:", response.data);
       })
       .catch((error) => {
         console.error("Error deleting folder:", error);
       });
+  };
+
+  // Helper function to recursively remove a folder from the tree
+  const removeFolderFromTree = (nodes: Node[], folderId: string): Node[] => {
+    // First filter out the target folder if it's at this level
+    const filteredNodes = nodes.filter((node) => node.id !== folderId);
+
+    // Then recursively check subfolders
+    return filteredNodes.map((node) => {
+      // If this node has subfolders, recursively filter them too
+      if (node.subfolders && node.subfolders.length > 0) {
+        return {
+          ...node,
+          subfolders: removeFolderFromTree(node.subfolders, folderId),
+        };
+      }
+
+      // Node has no subfolders, return as is
+      return node;
+    });
   };
 
   const renameFolder = (folderId: string, newName: string) => {
@@ -186,18 +243,40 @@ const Sidebar = () => {
         }
       )
       .then(() => {
-        const updatedFolders = folders.map((folder) => {
-          if (folder.id === folderId) {
-            // Changed name to id
-            return { ...folder, name: newName };
-          }
-          return folder;
-        });
-        setFolders(updatedFolders);
+        // Use recursive function to update folder name at any level
+        setFolders((prev) => renameFolderInTree(prev, folderId, newName));
       })
       .catch((error) => {
         console.error("Error renaming folder:", error);
       });
+  };
+
+  // Helper function to recursively find and rename a folder
+  const renameFolderInTree = (
+    nodes: Node[],
+    folderId: string,
+    newName: string
+  ): Node[] => {
+    return nodes.map((node) => {
+      // If this is the target folder, update its name
+      if (node.id === folderId) {
+        return {
+          ...node,
+          name: newName,
+        };
+      }
+
+      // If this node has subfolders, recursively check them
+      if (node.subfolders && node.subfolders.length > 0) {
+        return {
+          ...node,
+          subfolders: renameFolderInTree(node.subfolders, folderId, newName),
+        };
+      }
+
+      // Not the target folder and no subfolders to check
+      return node;
+    });
   };
 
   const deleteFile = (fileId: string) => {
@@ -209,13 +288,8 @@ const Sidebar = () => {
         },
       })
       .then((response) => {
-        // Update local state by removing the deleted file
-        setFolders((prev) =>
-          prev.map((folder) => ({
-            ...folder,
-            files: folder.files?.filter((file) => file.id !== fileId) || [],
-          }))
-        );
+        // Update local state by recursively finding and removing the deleted file
+        setFolders((prev) => removeFileFromFolders(prev, fileId));
 
         // Redirect to dashboard if response is successful
         if (response.status === 200) {
@@ -227,13 +301,32 @@ const Sidebar = () => {
       });
   };
 
-  const renameFile = (fileId: string, newName: string) => {
+  // Add this helper function to recursively remove files
+  const removeFileFromFolders = (nodes: Node[], fileId: string): Node[] => {
+    return nodes.map((node) => {
+      // Create new node with filtered files array
+      const updatedNode = {
+        ...node,
+        files: (node.files || []).filter((file) => file.id !== fileId),
+      };
+
+      // If the node has subfolders, recursively check them too
+      if (node.subfolders && node.subfolders.length > 0) {
+        updatedNode.subfolders = removeFileFromFolders(node.subfolders, fileId);
+      }
+
+      return updatedNode;
+    });
+  };
+
+  const renameFile = (fileId: string, newName: string, folderId: string) => {
     axios
       .put(
         `${process.env.NEXT_PUBLIC_API_URL}/rename_file`,
         {
           file_id: fileId,
           new_file_name: newName.trim(),
+          folder_id: folderId,
         },
         {
           withCredentials: true,
@@ -244,21 +337,43 @@ const Sidebar = () => {
       )
       .then((response) => {
         if (response.status === 200) {
-          // Update local state
-          setFolders((prev) =>
-            prev.map((folder) => ({
-              ...folder,
-              files:
-                folder.files?.map((file) =>
-                  file.id === fileId ? { ...file, name: newName } : file
-                ) || [],
-            }))
-          );
+          // Update local state with recursive function
+          setFolders((prev) => renameFileInTree(prev, fileId, newName));
         }
       })
       .catch((error) => {
         console.error("Error renaming note:", error.response?.data || error);
       });
+  };
+
+  // Helper function to recursively find and rename a file
+  const renameFileInTree = (
+    nodes: Node[],
+    fileId: string,
+    newName: string
+  ): Node[] => {
+    return nodes.map((node) => {
+      // Check if the file is in this folder's files
+      if (node.files && node.files.length > 0) {
+        return {
+          ...node,
+          files: node.files.map((file) =>
+            file.id === fileId ? { ...file, name: newName } : file
+          ),
+        };
+      }
+
+      // If this node has subfolders, recursively check them
+      if (node.subfolders && node.subfolders.length > 0) {
+        return {
+          ...node,
+          subfolders: renameFileInTree(node.subfolders, fileId, newName),
+        };
+      }
+
+      // No files or subfolders match, return unchanged
+      return node;
+    });
   };
 
   return (
@@ -283,23 +398,29 @@ const Sidebar = () => {
             <Plus size={12} />
           </Button>
         </h2>
-        <div className="flex-1 overflow-y-auto">
-          <ul className="w-full">
-            {folders.map((folder) => (
-              <Node
-                folder={folder}
-                key={folder.id}
-                siblings={folders}
-                onRenameFile={renameFile}
-                onDeleteFile={deleteFile}
-                onCreateFolder={createFolder}
-                onCreateNote={createNote}
-                onDeleteFolder={deleteFolder}
-                onRenameFolder={renameFolder}
-              />
-            ))}
-          </ul>
-        </div>
+        {loading ? (
+          <div className="h-full w-full flex items-center justify-center py-10">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : (
+          <div className="flex-1 overflow-y-auto">
+            <ul className="w-full">
+              {folders.map((folder) => (
+                <Node
+                  folder={folder}
+                  key={folder.id}
+                  siblings={folders}
+                  onRenameFile={renameFile}
+                  onDeleteFile={deleteFile}
+                  onCreateFolder={createFolder}
+                  onCreateNote={createNote}
+                  onDeleteFolder={deleteFolder}
+                  onRenameFolder={renameFolder}
+                />
+              ))}
+            </ul>
+          </div>
+        )}
 
         {/* Bottom Component - This will stay fixed at bottom */}
         <div className="mt-auto border-t pt-2">

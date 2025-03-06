@@ -21,6 +21,7 @@ import React, { useEffect, useRef, useState } from "react";
 type File = {
   id: string;
   name: string;
+  folder_id:string;
   video_id: string;
   content: string;
 };
@@ -40,7 +41,7 @@ type NodeProps = {
   onCreateNote: (folderId: string, newNote: string, youtubeUrl: string) => void;
   onDeleteFolder: (folderId: string) => void;
   onRenameFolder: (folderId: string, newFolderName: string) => void;
-  onRenameFile: (fileId: string, newNote: string) => void;
+  onRenameFile: (fileId: string, newNote: string,folderId:string) => void;
   onDeleteFile: (fileId: string) => void;
 };
 
@@ -69,7 +70,7 @@ const Node = ({
   const [isDialogOpenFile, setIsDialogOpenFile] = useState<string | null>(null);
   const folderDialogRef = useRef<HTMLDivElement>(null);
   const fileDialogRef = useRef<HTMLDivElement>(null);
-  const { setVideoId, setContent } = useContentContext();
+  const { setVideoId, setContent,setFileId } = useContentContext();
   const router = useRouter();
   const handleRenameFolder = () => {
     const trimmedName = newFolderName.trim();
@@ -103,6 +104,7 @@ const Node = ({
   };
 
   const handleRenameFile = (file: File) => {
+  
     const trimmedName = newNote.trim();
 
     // Input validation
@@ -125,8 +127,7 @@ const Node = ({
       console.error("Duplicate file name not allowed");
       return;
     }
-
-    onRenameFile(file.id, trimmedName);
+    onRenameFile(file.id, trimmedName,file.folder_id);
     setIsRenamingFile(null);
     setNewNote("");
   };
@@ -172,11 +173,6 @@ const Node = ({
     };
   }, []);
 
-  useEffect(() => {
-    if (folder.name === "New Folder") {
-      setIsRenamingFolder(true);
-    }
-  }, [folder.name]);
 
   return (
     <li className="mb-1 group">
@@ -325,6 +321,8 @@ const Node = ({
                       onClick={async (e) => {
                         e.preventDefault();
                         console.log("Setting videoId from file", file.video_id);
+                        console.log("Setting fileId from file", file.id);
+                        
                         try {
                           // Fetch file content from the backend
                           const response = await axios.get(
@@ -332,14 +330,12 @@ const Node = ({
                             {
                               withCredentials: true,
                             }
-                          );
-                          console.log("File data=>", response.data);
-                          // for (const[key,value] of Object.entries(response.data)){
-                          //   console.log(`${key}:${value}`)
-                          // }
+                          )                       
 
-                          setContent(response.data.note);
+                          setContent(response.data.note.content);
                           setVideoId(file.video_id);
+                          setFileId(response.data.note.id)
+                          console.log(response.data.note.id)
                           router.push(`/dashboard/${file.name}`);
                         } catch (error) {
                           console.error(

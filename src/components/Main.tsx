@@ -11,11 +11,11 @@ const Main = () => {
 
   const embedUrl = videoId
     ? `https://www.youtube.com/embed/${videoId}`
-    : "https://www.youtube.com/embed/BtImABK_VHo"; // Default fallback
+    : "https://www.youtube.com/embed/jNQXAC9IVRw"; // Default fallback
 
   return (
     <div className="flex h-full">
-      <div className="flex flex-col w-[880px] h-screen mx-2">
+      <div className="flex flex-col w-[880px] h-screen mx-1">
         <div className="flex h-[495px] mb-1">
           <iframe
             className="rounded-xl"
@@ -33,7 +33,8 @@ const Main = () => {
         </div>
       </div>
       <div className="flex w-full flex-1 h-screen">
-        <Quill />
+        {/* I need to implement functionality to switch tabs to Quiz, Flash cards and Quill */}
+        <Quill/>
       </div>
     </div>
   );

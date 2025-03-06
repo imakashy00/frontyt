@@ -5,7 +5,9 @@ const Landing = () => {
   return (
     <div className='flex justify-center items-center text-5xl'>
       <span>
-        Landing Page
+        Welcome to ytnotes.co
+        Here you can submit youtube url and get ai generated ,edit text images , links etc:
+        Store it 
       </span>
       <SignIn />
     </div>
