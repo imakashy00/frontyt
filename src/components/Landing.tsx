@@ -1,17 +1,21 @@
-import React from 'react'
-import SignIn from './SignIn'
+import Features from "./landing/Features";
+import Footer from "./landing/Footer";
+import Hero from "./landing/Hero";
+import Navbar from "./landing/Navbar";
+import Pricing from "./landing/Pricing";
+import Working from "./landing/Working";
 
 const Landing = () => {
   return (
-    <div className='flex justify-center items-center text-5xl'>
-      <span>
-        Welcome to ytnotes.co
-        Here you can submit youtube url and get ai generated ,edit text images , links etc:
-        Store it 
-      </span>
-      <SignIn />
+    <div className="p-5 h-auto space-y-10 w-full flex flex-col">
+      <Navbar />
+      <Hero />
+      <Features />
+      <Working />
+      <Pricing />
+      <Footer />
     </div>
-  )
-}
+  );
+};
 
-export default Landing
+export default Landing;

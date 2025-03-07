@@ -4,7 +4,7 @@ import { Loader2 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-const publicRoutes = ["/"]; // Routes that authenticated users shouldn't access
+const publicRoutes = ["/", "/terms", "/privacy-policy", "/about"];
 
 export default function Protected({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuthContext();
@@ -12,14 +12,13 @@ export default function Protected({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (loading) return; // Prevent redirecting while loading
+    if (loading) return;
     const currentRoute = pathname.split("?")[0]; // Ignore query parameters
 
     // Redirect unauthenticated users away from protected routes like `/dashboard`
     if (!user && currentRoute.startsWith("/dashboard")) {
       router.replace("/");
     }
-
 
     if (user && publicRoutes.includes(currentRoute)) {
       router.replace("/dashboard");

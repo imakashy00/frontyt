@@ -5,7 +5,16 @@ import { useState } from "react";
 import google from "../../public/google.png";
 import { Button } from "./ui/button";
 
-export default function SignIn() {
+interface SignInProps {
+  width?: string;
+  text?: string;
+  image?: boolean;
+}
+export default function SignIn({
+  width = "36",
+  text = "Sign In",
+  image = false
+}: SignInProps) {
   const [isLoading] = useState(false);
   const login = () => {
     window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/google`;
@@ -20,10 +29,12 @@ export default function SignIn() {
   return (
     <Button
       onClick={login}
-      className="w-1/2 bg-[#5d3fd3] text-white hover:shadow-md py-5 px-0 flex items-center gap-3 transition-all duration-200 ease-in-out"
+      className={`{w-${width} bg-[#5d3fd3] text-white hover:shadow-md py-5 flex items-center hover:bg-[#5d3fd3e3]  gap-3 transition-all duration-200 ease-in-out}`}
     >
-      <Image src={google} width={20} height={20} alt="Google Logo" priority />
-      <span className="font-medium">SignIn </span>
+      {image ? (
+        <Image src={google} width={20} height={20} alt="Google Logo" priority />
+      ) : null}
+      <span className="font-medium">{text} </span>
     </Button>
   );
 }

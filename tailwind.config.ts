@@ -1,7 +1,6 @@
 import tailwindScrollbarHide from "tailwind-scrollbar-hide";
 import type { Config } from "tailwindcss";
 import animate from "tailwindcss-animate";
-import defaultTheme, { fontFamily } from "tailwindcss/defaultTheme";
 export default {
   darkMode: ["class"],
   content: [
@@ -67,37 +66,8 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        heading: [
-          "var(--font-heading)",
-          "ui-sans-serif",
-          "-apple-system",
-          "BlinkMacSystemFont",
-          "Segoe UI Variable Display",
-          "Segoe UI",
-          "Helvetica",
-          "Apple Color Emoji",
-          "Arial",
-          "sans-serif",
-          "Segoe UI Emoji",
-          "Segoe UI Symbol",
-          "Noto Color Emoji",
-        ],
-        mono: [...defaultTheme.fontFamily.mono, ...fontFamily.mono],
-        sans: [
-          "var(--font-sans)",
-          "ui-sans-serif",
-          "-apple-system",
-          "BlinkMacSystemFont",
-          "Segoe UI Variable Display",
-          "Segoe UI",
-          "Helvetica",
-          "Apple Color Emoji",
-          "Arial",
-          "sans-serif",
-          "Segoe UI Emoji",
-          "Segoe UI Symbol",
-          "Noto Color Emoji",
-        ],
+        sans: ["var(--font-inter)", "system-ui", "sans-serif"],
+        heading: ["var(--font-outfit)", "system-ui", "sans-serif"],
       },
       screens: {
         "main-hover": {
