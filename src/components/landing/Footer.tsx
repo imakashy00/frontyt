@@ -42,7 +42,7 @@ const Footer = () => {
                 <span className="sr-only">Twitter</span>
               </a>
               <a
-                href="https://instagram.com/imakashy00"
+                href="https://instagram.com/ytnotes.co"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-500 hover:text-[#5d3fd3]"
