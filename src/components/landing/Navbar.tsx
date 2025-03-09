@@ -12,12 +12,12 @@ const Navbar = () => {
   };
 
   return (
-    <div className="w-full items-center sticky top-0 bg-white z-50 shadow-sm flex justify-between px-5 py-2 rounded-md">
+    <div className="w-full items-center sticky top-0 bg-white z-50 shadow-sm flex justify-between md:px-5 py-2 rounded-md">
       <span className="flex items-center gap-2">
-        <Image className="w-8 h-8 rounded-sm" src={ytnotes} alt={"Ytnotes"} />
-        <span className="text-2xl text-gray-800 font-sans ">YTNotes</span>
+        <Image className="md:w-8 md:h-8 w-6 h-6 rounded-sm" src={ytnotes} alt={"Ytnotes"} />
+        <span className="md:text-2xl text-gray-800 font-sans ">YTNotes</span>
       </span>
-      <ul className="flex space-x-8">
+      <ul className="flex md:space-x-8 space-x-4">
         <li>
           <button
             onClick={() => scrollToSection("features")}
@@ -36,7 +36,7 @@ const Navbar = () => {
           </button>
         </li>
       </ul>
-      <SignIn width="w-36" text="Sign/Signup" />
+      <SignIn width="md:w-36 w-24 " text="SignIn" image = {true} />
     </div>
   );
 };

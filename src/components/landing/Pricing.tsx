@@ -88,7 +88,7 @@ const Pricing = () => {
               </span>
               <button
                 onClick={() => setIsYearly((prev) => !prev)}
-                className="relative inline-flex h-6 w-11 items-center rounded-full bg-[#5d3fd3]/70"
+                className="relative inline-flex h-6 w-11 items-center rounded-full bg-[#5d3fd3]/80"
               >
                 <span className="sr-only">Toggle billing period</span>
                 <span

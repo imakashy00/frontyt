@@ -99,7 +99,7 @@ export default function RootLayout({
         </Script>
       </head>
       <body
-        className={`${outfit.variable} ${inter.variable} antialiased bg-[#ffffff]`}
+        className={`${outfit.variable} ${inter.variable} antialiased bg-[#fff]`}
       >
         <AuthProvider>
           <Protected>{children}</Protected>

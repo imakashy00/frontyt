@@ -11,20 +11,20 @@ const Hero = () => {
     }
   };
   return (
-    <div className="flex flex-col md:flex-row items-center py-20 px-5 gap-8">
+    <div className="flex flex-col md:flex-row items-center py-20 md:px-5 px-4 gap-8">
       <div className="flex flex-col max-w-2xl">
         <span className="text-sm font-semibold tracking-wider text-[#5d3fd3] mb-2">
-          Personal note-taking assistant ✍️
+          Your note-taking assistant ✍️
         </span>
-        <h1 className="text-5xl md:text-5xl font-bold text-gray-800 mb-6">
+        <h1 className="text-5xl md:text-6xl font-bold text-gray-800 mb-6">
           Get Structured Note from YouTube Url
         </h1>
-        <p className="text-xl text-gray-600 mb-10 w-2/3 ">
+        <p className="md:text-xl text-gray-600 mb-10 md:w-2/3   ">
           Save hours with AI-powered 🤖 note-taking that automatically generates
           structured notes 📋, organizes them in folders 📁, and lets you edit
-          anytime ✍️ .
+          anytime ✍️
         </p>
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-row  gap-4">
           <div className="flex flex-col">
             <SignIn text=" Start 15 days Free Trial" />
             <p className="text-xs text-gray-500 mt-1 text-center">
