@@ -90,17 +90,14 @@ const Footer = () => {
             </h3>
             <ul className="space-y-3">
               <li>
-                <Link
-                  href="#"
-                  className="text-gray-600 hover:text-[#5d3fd3]"
-                >
+                <Link href="#" className="text-gray-600 hover:text-[#5d3fd3]">
                   Guides
                 </Link>
               </li>
 
               <li>
                 <Link
-                  href="#"
+                  href="#faq"
                   className="text-gray-600 hover:text-[#5d3fd3]"
                 >
                   FAQ
