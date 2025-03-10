@@ -10,6 +10,7 @@ import axios from "axios";
 import { Folder, Loader2, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import Bottom from "./Bottom";
 import { default as Node } from "./Node";
 import SideHeader from "./SideHeader";
@@ -46,6 +47,7 @@ const Sidebar = () => {
         // console.log(typeof res.data.folders);
         // console.log(res.data);
         setFolders(res.data.folders);
+        // toast.success("Welcome", { style: {color:'#5d3fd3'} });
       } catch (error) {
         console.error(error);
       } finally {
@@ -70,10 +72,11 @@ const Sidebar = () => {
       .then((response) => {
         const newFolder = response.data.folder;
         setFolders((prevFolders) => [...prevFolders, newFolder]);
-        console.log("Folder created:", response.data);
+        toast.success("Folder created")
+        // console.log("Folder created:", response.data);
       })
-      .catch((error) => {
-        console.error("Error creating folder:", error);
+      .catch(() => {
+        toast.error("Error creating folder");
       });
   };
 
@@ -94,11 +97,13 @@ const Sidebar = () => {
       )
       .then((response) => {
         const newFolder = response.data.folder;
-        console.log("Inside Folder=>", response.data);
+        // console.log("Inside Folder=>", response.data);
         setFolders((prev) => addFolderToParent(prev, parentId, newFolder));
+        toast.success("Folder Created");
+
       })
-      .catch((error) => {
-        console.error("Error creating folder:", error);
+      .catch(() => {
+        toast.error("Error creating folder");
       });
   };
 
@@ -129,12 +134,14 @@ const Sidebar = () => {
     youtubeUrl: string
   ) => {
     if (!newNote.trim() || !youtubeUrl.trim()) {
-      console.error("Note name and YouTube URL are required");
+      toast.error("Note name and YouTube URL are required");
       return;
     }
 
-    axios
-      .post(
+    // Use toast.promise to show loading state while request is in progress
+    toast.promise(
+      // The promise to track
+      axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/note`,
         {
           folder_id: folderId,
@@ -143,25 +150,36 @@ const Sidebar = () => {
         },
         {
           withCredentials: true,
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
         }
-      )
-      .then((response) => {
-        // Update local state with new note
-        console.log("Created Note=>", response.data);
-        setFolders((prev) =>
-          addFileToFolder(prev, folderId, response.data.note as File)
-        );
-        setContent(response.data.notes || "");
-        setVideoId(response.data.video_id);
-        setFileId(response.data.id);
-        router.push(`/dashboard/${newNote}`);
-      })
-      .catch((error) => {
-        console.error("Error creating note:", error.response?.data || error);
-      });
+      ),
+      {
+        loading: "Creating notes from YouTube video...",
+        success: (response) => {
+          // Update local state with new note
+          setFolders((prev) =>
+            addFileToFolder(prev, folderId, response.data.note as File)
+          );
+          setContent(response.data.notes || "");
+          setVideoId(response.data.video_id);
+          setFileId(response.data.id);
+          router.push(`/dashboard/${newNote}`);
+          return "Notes created successfully!";
+        },
+        error: (error) => {
+
+          // Extract specific error message from the backend response
+          const errorMessage =
+            error.response?.data?.detail ||
+            error.response?.data ||
+            "Failed to create note. Please try again.";
+
+          return typeof errorMessage === "string"
+            ? errorMessage
+            : "Failed to create note. Please try again.";
+        },
+      }
+    );
   };
 
   const addFileToFolder = (
@@ -196,17 +214,18 @@ const Sidebar = () => {
       .delete(`${process.env.NEXT_PUBLIC_API_URL}/folder/${folderId}`, {
         withCredentials: true,
       })
-      .then((response) => {
+      .then(() => {
         // Update state by recursively removing the folder
         setFolders((prev) => removeFolderFromTree(prev, folderId));
+        toast.success("Folder deleted")
 
         // Navigate to dashboard if needed
         router.push("/dashboard");
 
-        console.log("Folder deleted:", response.data);
+        // console.log("Folder deleted:", response.data);
       })
-      .catch((error) => {
-        console.error("Error deleting folder:", error);
+      .catch(() => {
+        toast.error("Error deleting folder");
       });
   };
 
@@ -245,9 +264,10 @@ const Sidebar = () => {
       .then(() => {
         // Use recursive function to update folder name at any level
         setFolders((prev) => renameFolderInTree(prev, folderId, newName));
+        toast.success(`Folder renamed to ${newName}`)
       })
       .catch((error) => {
-        console.error("Error renaming folder:", error);
+        toast.error("Error renaming folder:", error);
       });
   };
 
@@ -295,9 +315,10 @@ const Sidebar = () => {
         if (response.status === 200) {
           router.push("/dashboard");
         }
+        toast.success('Note Deleted')
       })
       .catch((error) => {
-        console.error("Error deleting note:", error.response?.data || error);
+        toast.error("Error deleting note:", error.response?.data || error);
       });
   };
 
@@ -339,10 +360,11 @@ const Sidebar = () => {
         if (response.status === 200) {
           // Update local state with recursive function
           setFolders((prev) => renameFileInTree(prev, fileId, newName));
+          toast.success(`Note renamed to ${newName}`)
         }
       })
       .catch((error) => {
-        console.error("Error renaming note:", error.response?.data || error);
+        toast.error("Error renaming note:", error.response?.data || error);
       });
   };
 

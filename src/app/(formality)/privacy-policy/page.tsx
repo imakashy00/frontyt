@@ -103,7 +103,7 @@ const PrivacyPolicy = () => {
               ytnotes.co
             </a>{" "}
             and related services, applications, and tools where this policy is
-            referenced (collectively referred to as the &quot;ervices&quot;).
+            referenced (collectively referred to as the &quot;services&quot;).
           </p>
           <p className="text-gray-700">
             By accessing or using our Services, you signify that you have read,

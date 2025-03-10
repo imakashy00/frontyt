@@ -3,6 +3,7 @@ import StructuredData from "@/components/StructuredData";
 import type { Metadata } from "next";
 import { Inter, Outfit } from "next/font/google";
 import Script from "next/script";
+import { Toaster } from "sonner";
 import { AuthProvider } from "./context/AuthContext";
 import "./globals.css";
 const outfit = Outfit({
@@ -102,7 +103,10 @@ export default function RootLayout({
         className={`${outfit.variable} ${inter.variable} antialiased bg-[#fff]`}
       >
         <AuthProvider>
-          <Protected>{children}</Protected>
+          <Protected>
+            {children}
+            <Toaster position="top-center" richColors />
+          </Protected>
         </AuthProvider>
       </body>
     </html>

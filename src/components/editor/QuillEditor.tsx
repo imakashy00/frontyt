@@ -7,7 +7,8 @@ import "katex/dist/katex.min.css";
 import Quill from "quill";
 import Delta from "quill-delta";
 import "quill/dist/quill.snow.css";
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 // Register a custom icon for save button
 const SaveIcon = Quill.import("ui/icons");
@@ -18,8 +19,7 @@ const QuillEditor = () => {
   const quillRef = useRef<HTMLDivElement>(null);
   const quillInstanceRef = useRef<Quill | null>(null);
   const { content, setContent, fileId } = useContentContext();
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveMessage, setSaveMessage] = useState("");
+  // const [isSaving, setIsSaving] = useState(false);
   const [isEditorReady, setIsEditorReady] = useState(false);
 
   // Define the save handler as a callback that always accesses the current fileId
@@ -27,34 +27,35 @@ const QuillEditor = () => {
     if (!quillInstanceRef.current) return;
 
     if (!fileId) {
-      console.error("No file ID available in context");
-      setSaveMessage("Error: Missing file ID");
-      setTimeout(() => setSaveMessage(""), 3000);
+      toast.error("Open a file first");
       return;
     }
 
     const content = quillInstanceRef.current.getContents();
-    setIsSaving(true);
-    setSaveMessage("Saving...");
+    // setIsSaving(true);
 
-    try {
-      await axios.put(
+    toast.promise(
+      axios.put(
         `${process.env.NEXT_PUBLIC_API_URL}/note`,
         { file_id: fileId, note: content },
         {
           headers: { "Content-Type": "application/json" },
-          withCredentials:true,
+          withCredentials: true,
         }
-      );
-      setSaveMessage("Saved");
-      setTimeout(() => setSaveMessage(""), 3000);
-    } catch (error) {
-      console.error("Save error:", error);
-      setSaveMessage("Failed");
-      setTimeout(() => setSaveMessage(""), 3000);
-    } finally {
-      setIsSaving(false);
-    }
+      ),
+      {
+        loading: "Saving changes...",
+        success: () => {
+          // setIsSaving(false);
+          return "Changes saved ";
+        },
+        error: (err) => {
+          console.error("Save error:", err);
+          // setIsSaving(false);
+          return "Failed to save";
+        },
+      }
+    );
   }, [fileId]); // The callback depends on fileId
 
   // Only initialize Quill once
@@ -87,7 +88,7 @@ const QuillEditor = () => {
             },
           },
         },
-        placeholder: "Compose an epic...",
+        placeholder: "Create insightful note...",
         theme: "snow",
       });
 
@@ -174,27 +175,12 @@ const QuillEditor = () => {
   return (
     <div className="flex w-[790px] flex-col h-screen">
       <div id="toolbar-container" className="flex w-full"></div>
-      <div className="relative overflow-hidden flex-1">
+      <div className="relative overflow-hidden flex-1 ">
         <div
-          className="flex-1 w-full pl-2  overflow-hidden border border-[#5d3fd3]"
+          className="flex-1 w-full pl-2 pb-12 overflow-hidden"
           ref={quillRef}
           id="editor"
         ></div>
-
-        {/* Save status message */}
-        {saveMessage && (
-          <div
-            className={`absolute text-sm top-2 right-2 px-3 py-1 rounded-md transition-opacity ${
-              isSaving
-                ? "bg-blue-100 text-blue-700"
-                : saveMessage === "Saved"
-                ? "bg-green-100 text-green-700"
-                : "bg-red-100 text-red-700"
-            }`}
-          >
-            {saveMessage}
-          </div>
-        )}
       </div>
     </div>
   );

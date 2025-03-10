@@ -121,6 +121,11 @@ const TermsAndConditions = () => {
               </a>
             </li>
             <li>
+              <span className="font-medium">Registered Office:</span>{" "}
+              BHAISAHIYA, DUBEY BHEUSA, KHAJURI, KHAJNI , Gorakhpur, UTTAR
+              PRADESH 273212, India
+            </li>
+            <li>
               <span className="font-medium">Business Location:</span> India
             </li>
             <li>
@@ -282,7 +287,7 @@ const TermsAndConditions = () => {
               interruptions, errors in note generation, or data loss.
             </li>
             <li>
-              The service is provided &isquot;as is&quot; without warranties of
+              The service is provided &quot;as is&quot; without warranties of
               any kind, either express or implied.
             </li>
             <li>

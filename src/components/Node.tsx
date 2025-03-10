@@ -17,11 +17,12 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 type File = {
   id: string;
   name: string;
-  folder_id:string;
+  folder_id: string;
   video_id: string;
   content: string;
 };
@@ -41,7 +42,7 @@ type NodeProps = {
   onCreateNote: (folderId: string, newNote: string, youtubeUrl: string) => void;
   onDeleteFolder: (folderId: string) => void;
   onRenameFolder: (folderId: string, newFolderName: string) => void;
-  onRenameFile: (fileId: string, newNote: string,folderId:string) => void;
+  onRenameFile: (fileId: string, newNote: string, folderId: string) => void;
   onDeleteFile: (fileId: string) => void;
 };
 
@@ -70,7 +71,7 @@ const Node = ({
   const [isDialogOpenFile, setIsDialogOpenFile] = useState<string | null>(null);
   const folderDialogRef = useRef<HTMLDivElement>(null);
   const fileDialogRef = useRef<HTMLDivElement>(null);
-  const { setVideoId, setContent,setFileId } = useContentContext();
+  const { setVideoId, setContent, setFileId } = useContentContext();
   const router = useRouter();
   const handleRenameFolder = () => {
     const trimmedName = newFolderName.trim();
@@ -82,7 +83,7 @@ const Node = ({
 
     // Check for duplicates among siblings
     if (siblings.some((f) => f.name === trimmedName && f.id !== folder.id)) {
-      console.log("Duplicate name not allowed");
+      toast.error("This name is already taken in this folder");
       setNewFolderName(folder.name);
       return;
     }
@@ -98,25 +99,24 @@ const Node = ({
         onRenameFolder(folder.id, trimmedName);
         setIsRenamingFolder(false);
       })
-      .catch((error) => {
-        console.error("Error renaming folder:", error);
+      .catch(() => {
+        // toast.error("Error renaming folder:", error);
       });
   };
 
   const handleRenameFile = (file: File) => {
-  
     const trimmedName = newNote.trim();
 
     // Input validation
     if (!trimmedName) {
-      console.error("File name cannot be empty");
+      toast.error("File name cannot be empty");
       setNewNote(file.name);
       return;
     }
 
     // Check for special characters
     if (!/^[a-zA-Z0-9-_ ]+$/.test(trimmedName)) {
-      console.error(
+      toast.error(
         "File name can only contain letters, numbers, spaces, hyphens and underscores"
       );
       return;
@@ -124,10 +124,10 @@ const Node = ({
 
     // Check for duplicates
     if (folder.files?.some((f) => f.name === trimmedName && f.id !== file.id)) {
-      console.error("Duplicate file name not allowed");
+      toast.error("File already exists in the folder");
       return;
     }
-    onRenameFile(file.id, trimmedName,file.folder_id);
+    onRenameFile(file.id, trimmedName, file.folder_id);
     setIsRenamingFile(null);
     setNewNote("");
   };
@@ -172,7 +172,6 @@ const Node = ({
       document.removeEventListener("keydown", handleEscapeKey);
     };
   }, []);
-
 
   return (
     <li className="mb-1 group">
@@ -311,7 +310,7 @@ const Node = ({
                         }
                         autoFocus
                         className="rounded py-0 w-[140px] outline-none"
-                        placeholder="New file name"
+                        placeholder="New name"
                         title="Rename file"
                       />
                     </span>
@@ -320,9 +319,7 @@ const Node = ({
                       href={`/dashboard/${file.name}`}
                       onClick={async (e) => {
                         e.preventDefault();
-                        console.log("Setting videoId from file", file.video_id);
-                        console.log("Setting fileId from file", file.id);
-                        
+
                         try {
                           // Fetch file content from the backend
                           const response = await axios.get(
@@ -330,17 +327,16 @@ const Node = ({
                             {
                               withCredentials: true,
                             }
-                          )                       
+                          );
 
                           setContent(response.data.note.content);
                           setVideoId(file.video_id);
-                          setFileId(response.data.note.id)
-                          console.log(response.data.note.id)
+                          setFileId(response.data.note.id);
+                          // console.log(response.data.note.id)
                           router.push(`/dashboard/${file.name}`);
                         } catch (error) {
-                          console.error(
-                            `Error${error} while fetching file's content`
-                          );
+                          console.error(error);
+                          toast.error("Error in fetching file");
                         }
                       }}
                     >
