@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// const publicRoutes = ["/", "/terms", "/privacy-policy"];
 export default function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
   

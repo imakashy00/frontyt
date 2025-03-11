@@ -4,7 +4,7 @@ import { Loader2 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-const publicRoutes = ["/", "/terms", "/privacy-policy", "/about"];
+const publicRoutes = ["/", "/terms", "/privacy-policy"];
 
 export default function Protected({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuthContext();
