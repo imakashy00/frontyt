@@ -10,25 +10,22 @@ export default function Protected({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuthContext();
   const router = useRouter();
   const pathname = usePathname();
-  const currentRoute = pathname.split("?")[0]; // Ignore query parameters
-  const isPublicRoute = publicRoutes.includes(currentRoute);
 
   useEffect(() => {
     if (loading) return;
+    const currentRoute = pathname.split("?")[0]; // Ignore query parameters
 
     // Redirect unauthenticated users away from protected routes like `/dashboard`
-    if (!user && currentRoute.startsWith("/dashboard")) {
+    if (!user) {
       router.replace("/");
     }
 
-    // Redirect authenticated users from public routes to `/dashboard`
-    if (user && isPublicRoute) {
+    if (user && publicRoutes.includes(currentRoute)) {
       router.replace("/dashboard");
     }
-  }, [user, loading, currentRoute, router, isPublicRoute]);
+  }, [user, loading, pathname, router]);
 
-  // Only show loader on protected routes; immediately render public routes even if still loading
-  if (loading && !isPublicRoute) {
+  if (loading) {
     return (
       <div className="h-screen w-screen flex items-center justify-center">
         <Loader2 className="h-20 w-20 animate-spin text-[#5d3fd3]" />

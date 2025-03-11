@@ -1,4 +1,3 @@
-import Protected from "@/components/Protected";
 import StructuredData from "@/components/StructuredData";
 import type { Metadata } from "next";
 import { Inter, Outfit } from "next/font/google";
@@ -103,10 +102,8 @@ export default function RootLayout({
         className={`${outfit.variable} ${inter.variable} antialiased bg-[#fff]`}
       >
         <AuthProvider>
-          <Protected>
-            {children}
-            <Toaster position="top-center" richColors />
-          </Protected>
+          {children}
+          <Toaster position="top-center" richColors />
         </AuthProvider>
       </body>
     </html>

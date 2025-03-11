@@ -1,4 +1,5 @@
 "use client";
+import Protected from "@/components/Protected";
 import Sidebar from "@/components/Sidebar";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -19,14 +20,16 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
     return null; // Return nothing while loading or if not authenticated
   }
   return (
-    <ContentProvider>
-      <div className="w-full min-h-screen bg-background flex">
-        <aside className="min-w-[220px] rounded-xl border-r border-[#5d3fd3]">
-          <Sidebar />
-        </aside>
-        {children}
-      </div>
-    </ContentProvider>
+    <Protected>
+      <ContentProvider>
+        <div className="w-full min-h-screen bg-background flex">
+          <aside className="min-w-[220px] rounded-xl border-r border-[#5d3fd3]">
+            <Sidebar />
+          </aside>
+          {children}
+        </div>
+      </ContentProvider>
+    </Protected>
   );
 };
 
