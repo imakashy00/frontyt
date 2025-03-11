@@ -6,6 +6,9 @@ export default function middleware(req: NextRequest) {
 
   const accessToken = req.cookies.get("access_token")?.value || null;
   const refreshToken = req.cookies.get("refresh_token")?.value || null;
+  if (path === "/" && accessToken) {
+    return NextResponse.redirect(new URL("/dashboard", req.nextUrl));
+  }
   if (
     publicRoutes.some((route) => path === route || path.startsWith(`${route}/`))
   ) {
@@ -17,10 +20,6 @@ export default function middleware(req: NextRequest) {
   // Redirect unauthenticated users from protected routes
   if (isProtectedRoute && !accessToken && !refreshToken) {
     return NextResponse.redirect(new URL("/", req.nextUrl));
-  }
-
-  if (path === "/" && accessToken) {
-    return NextResponse.redirect(new URL("/dashboard", req.nextUrl));
   }
 
   // Allow public routes to proceed
