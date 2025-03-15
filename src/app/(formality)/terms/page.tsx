@@ -195,6 +195,7 @@ const TermsAndConditions = () => {
                 only available if requested within{" "}
                 <span className="font-medium">24 hours</span> of purchase.
               </li>
+              <li>Refunds will be initiated within 3-5 days of request.</li>
             </ul>
           </div>
         </section>

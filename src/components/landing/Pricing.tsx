@@ -1,102 +1,16 @@
 "use client";
 import { Check } from "lucide-react";
 import SignIn from "../SignIn";
-// import { Button } from "../ui/button";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const Pricing = () => {
   const [isYearly, setIsYearly] = useState(true);
-  const [currency, setCurrency] = useState("USD");
-  const [exchangeRate, setExchangeRate] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    // Detect user's country
-    const detectUserCountry = async () => {
-      try {
-        const response = await fetch("https://ipapi.co/json/");
-        const data = await response.json();
-
-        if (data.country === "IN") {
-          setCurrency("INR");
-        }
-      } catch (error) {
-        console.error("Error detecting country:", error);
-      }
-    };
-
-    detectUserCountry();
-  }, []);
-  // Fetch exchange rates when component mounts or currency changes
-  useEffect(() => {
-    const fetchExchangeRate = async () => {
-      if (currency === "USD") {
-        setExchangeRate(1);
-        setIsLoading(false);
-        return;
-      }
-
-      setIsLoading(true);
-      try {
-        // Using ExchangeRate-API (free tier)
-        const response = await fetch(`https://open.er-api.com/v6/latest/USD`);
-        const data = await response.json();
-
-        if (data && data.rates && data.rates.INR) {
-          setExchangeRate(data.rates.INR);
-        } else {
-          // Fallback rate if API fails
-          setExchangeRate(83.5);
-        }
-      } catch (error) {
-        console.error("Error fetching exchange rate:", error);
-        // Fallback rate if API fails
-        setExchangeRate(83.5);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchExchangeRate();
-  }, [currency]);
-
-  // Helper function to format prices
-  const formatPrice = (usdPrice: number) => {
-    if (currency === "INR" && exchangeRate) {
-      const inrPrice = Math.round(usdPrice * exchangeRate * 100) / 100;
-      return {
-        mainPrice: `₹${Math.floor(inrPrice)}`,
-        fraction:
-          inrPrice % 1 !== 0
-            ? `.${String(Math.round((inrPrice % 1) * 100)).padStart(2, "0")}`
-            : ".00",
-        suffix: "/mo",
-      };
-    }
-
-    // Default USD format
-    return {
-      mainPrice: `$${Math.floor(usdPrice)}`,
-      fraction:
-        usdPrice % 1 !== 0
-          ? `.${String(Math.round((usdPrice % 1) * 100)).padStart(2, "0")}`
-          : ".00",
-      suffix: "/mo",
-    };
-  };
-
-  // Calculate prices
+  // Define prices
   const monthlyPrice = 19;
-  const yearlyPrice = 16.5;
-  const currentPrice = isYearly ? yearlyPrice : monthlyPrice;
-  const savings = Math.round(monthlyPrice * 12 - yearlyPrice * 12);
-
-  // Get formatted prices
-  const formattedPrice = formatPrice(currentPrice);
-  const formattedSavings =
-    currency === "INR" && exchangeRate
-      ? `₹${Math.round(savings * exchangeRate)}`
-      : `$${savings}`;
+  const yearlyPrice = 199;
+  const savings = monthlyPrice * 12 - yearlyPrice; // Calculate savings: $29
+  const formattedSavings = `$${savings}`;
 
   return (
     <div className="py-24 bg-white" id="pricing">
@@ -201,35 +115,23 @@ const Pricing = () => {
 
             {/* Price Display */}
             <div className="text-center mb-8">
-              {isLoading ? (
-                <div className="flex items-center justify-center h-16">
-                  <div className="w-8 h-8 border-4 border-[#5d3fd3]/30 border-t-[#5d3fd3] rounded-full animate-spin"></div>
-                </div>
-              ) : (
-                <>
-                  <div className="flex items-center justify-center text-[#5d3fd3] mb-2">
-                    <div className="flex items-end">
-                      <span className="text-4xl font-bold">
-                        {formattedPrice.mainPrice}
-                      </span>
-                      <span className="text-2xl font-bold mb-1">
-                        {formattedPrice.fraction}
-                      </span>
-                    </div>
-                    <span className="text-lg text-gray-500 font-normal ml-1">
-                      {formattedPrice.suffix}
-                    </span>
+              <div className="flex items-center justify-center text-[#5d3fd3] mb-2">
+                <span className="text-4xl font-bold">
+                  ${isYearly ? yearlyPrice : monthlyPrice}
+                </span>
+                <span className="text-lg text-gray-500 font-normal ml-1">
+                  {isYearly ? "/year" : "/month"}
+                </span>
+              </div>
+
+              {/* Always reserve space for the savings message */}
+              <div className="h-8 flex items-center justify-center">
+                {isYearly && (
+                  <div className="text-sm bg-[#5d3fd3]/10 text-[#5d3fd3] py-1 px-3 rounded-full inline-block">
+                    Save {formattedSavings} per year
                   </div>
-                  {/* Always reserve space for the savings message */}
-                  <div className="h-8 flex items-center justify-center">
-                    {isYearly && (
-                      <div className="text-sm bg-[#5d3fd3]/10 text-[#5d3fd3] py-1 px-3 rounded-full inline-block">
-                        Save {formattedSavings} per year
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
+                )}
+              </div>
             </div>
 
             {/* CTA Button */}
