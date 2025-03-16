@@ -19,7 +19,8 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { initializePaddle, Paddle } from "@paddle/paddle-js";
+import type { Paddle } from "@paddle/paddle-js";
+import { initializePaddle } from "@paddle/paddle-js";
 import axios from "axios";
 import { Check, Loader2, LogOut, User as UserIcon } from "lucide-react";
 import Image from "next/image";
@@ -73,23 +74,28 @@ const ProfilePage = () => {
     fetchSubscriptionStatus();
   }, []);
 
-
   // Initialize Paddle
   useEffect(() => {
+    const environment = process.env.NEXT_PADDLE_ENVIRONMENT || "sandbox";
+    const token = process.env.NEXT_PADDLE_TOKEN;
+    if (!token) {
+      console.error("Paddle token not found in environment variables");
+      return;
+    }
     initializePaddle({
-      environment: "sandbox",
-      token: "test_963be56e83b4879ea5700a772e2",
+      environment: environment as "sandbox" | "production", // Type cast for TypeScript
+      token: token,
     })
       .then((paddleInstance) => {
         if (paddleInstance) {
           setPaddle(paddleInstance);
         } else {
-          console.error("Failed to initialize Paddle - instance is undefined");
+          // console.error("Failed to initialize Paddle - instance is undefined");
           toast.error("Failed to initialize payment system");
         }
       })
-      .catch((error) => {
-        console.error("Error initializing Paddle:", error);
+      .catch(() => {
+        // console.error("Error initializing Paddle:", error);
         toast.error("Failed to initialize payment system");
       });
   }, []);
@@ -100,13 +106,17 @@ const ProfilePage = () => {
       return;
     }
 
+    const yearlyPriceId = process.env.NEXT_PADDLE_PRICE_YEARLY;
+    const monthlyPriceId = process.env.NEXT_PADDLE_PRICE_MONTHLY;
+
+    if (!yearlyPriceId || !monthlyPriceId) {
+      return;
+    }
     try {
       paddle.Checkout.open({
         items: [
           {
-            priceId: isYearly
-              ? "pri_01jp4tnsavagaw4s28pnc45gak"
-              : "pri_01jp4tmpxadzvj5f7kd3kprnk5",
+            priceId: isYearly ? yearlyPriceId : monthlyPriceId,
             quantity: 1,
           },
         ],
@@ -121,8 +131,8 @@ const ProfilePage = () => {
           successUrl: window.location.origin + "/dashboard/profile",
         },
       });
-    } catch (error) {
-      console.error("Error opening checkout:", error);
+    } catch {
+      // console.error("Error opening checkout:", error);
       toast.error("Failed to open checkout");
     }
   };
