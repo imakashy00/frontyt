@@ -21,24 +21,58 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { initializePaddle, Paddle } from "@paddle/paddle-js";
 import axios from "axios";
-import { Check, LogOut, User as UserIcon } from "lucide-react";
+import { Check, Loader2, LogOut, User as UserIcon } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+type SubscribedUser = {
+  plan: string;
+  current_period_end: Date;
+};
+
 const ProfilePage = () => {
   const { user, logout } = useAuthContext();
-  const [isSubscribed, setIsSubscribed] = useState(true);
   const [isCanceling, setIsCanceling] = useState(false);
   const [cancellationReason, setCancellationReason] = useState<string>("");
   const [isYearly, setIsYearly] = useState(true);
   const [paddle, setPaddle] = useState<Paddle | undefined>();
   const [isCancellationLoading, setIsCancellationLoading] = useState(false);
+  const [subscriptionDetails, setSubscriptionDetails] =
+    useState<SubscribedUser | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Define prices
   const monthlyPrice = 19;
   const yearlyPrice = 199;
   const savings = monthlyPrice * 12 - yearlyPrice;
+
+  useEffect(() => {
+    const fetchSubscriptionStatus = async () => {
+      setIsLoading(true);
+
+      try {
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/status`,
+          { withCredentials: true }
+        );
+
+        const data = {
+          plan: response.data.plan,
+          current_period_end: new Date(response.data.current_period_end),
+        };
+
+        setSubscriptionDetails(data);
+      } catch (error) {
+        toast.error(`${error}`);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSubscriptionStatus();
+  }, []);
+
 
   // Initialize Paddle
   useEffect(() => {
@@ -120,7 +154,7 @@ const ProfilePage = () => {
       );
 
       // Update UI state
-      setIsSubscribed(false);
+      // setIsSubscribed(false);
       setIsCanceling(false);
       setCancellationReason("");
     } catch (error) {
@@ -214,34 +248,41 @@ const ProfilePage = () => {
             <CardContent>
               <div className="space-y-6">
                 {/* Current Plan */}
-                {/* {isSubscribed ? (
+
+                {isLoading ? (
+                  <div className="flex items-center justify-center">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                ) : (
                   <div className="bg-gray-50 p-6 rounded-lg border">
                     <div className="flex justify-between items-start">
                       <div>
                         <h3 className="font-bold text-lg mb-1">Current Plan</h3>
                         <>
                           <div className="flex items-center gap-2">
-                            <Badge className="bg-[#5d3fd3]">
-                              {plan === "monthly" ? "Monthly" : "Annual"} Plan
-                            </Badge>
-                            <Badge className="bg-green-500">Active</Badge>
+                            <div className="bg-[#5d3fd3] text-white border rounded p-2">
+                              {subscriptionDetails?.plan === "monthly"
+                                ? "Monthly"
+                                : "Annual"}
+                              Plan
+                            </div>
+                            <div className="bg-green-500 text-white rounded p-1">
+                              Active
+                            </div>
                           </div>
                           <p className="text-sm text-gray-500 mt-2">
-                            {plan === "monthly"
+                            {subscriptionDetails?.plan === "monthly"
                               ? "You're currently paying $19/month"
                               : "You're currently paying $199/year"}
-                          </p>
-                          <p className="text-xs text-gray-500 mt-1">
-                            Next billing date: April 1, 2024
                           </p>
                         </>
                       </div>
                     </div>
                   </div>
-                ) : null} */}
+                )}
 
                 {/* Pricing for unsubscribed users */}
-                {!isSubscribed && (
+                {!isLoading && !user?.subscribed && (
                   <div className="mt-1">
                     {/* Pricing Toggle */}
                     <div className="flex items-center justify-center mb-6">
@@ -340,7 +381,7 @@ const ProfilePage = () => {
                 )}
 
                 {/* Cancel Subscription - Keeping this section */}
-                {isSubscribed && (
+                {user?.subscribed && (
                   <div className="pt-4 border-t">
                     <h3 className="font-bold text-gray-700 mb-2">
                       Cancel Subscription

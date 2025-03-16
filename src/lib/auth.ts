@@ -7,6 +7,7 @@ interface User {
   email: string;
   name: string;
   image: string;
+  subscribed: boolean;
 }
 
 export function useAuth() {
@@ -16,24 +17,32 @@ export function useAuth() {
 
   const logout = async () => {
     try {
-      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/logout`, {}, {
-        withCredentials: true
-      });
+      await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/logout`,
+        {},
+        {
+          withCredentials: true,
+        }
+      );
       setUser(null);
-      router.push('/');
+      router.push("/");
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 401) {
         try {
           await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/refresh`, {
-            withCredentials: true
+            withCredentials: true,
           });
-          await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/logout`, {}, {
-            withCredentials: true
-          });
+          await axios.post(
+            `${process.env.NEXT_PUBLIC_API_URL}/logout`,
+            {},
+            {
+              withCredentials: true,
+            }
+          );
           setUser(null);
-          router.push('/');
+          router.push("/");
         } catch {
-          router.push('/');
+          router.push("/");
         }
       }
     }
@@ -43,31 +52,34 @@ export function useAuth() {
     const getUser = async () => {
       try {
         const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/me`, {
-          withCredentials: true
+          withCredentials: true,
         });
         setUser(res.data);
       } catch (error) {
         if (axios.isAxiosError(error) && error.response?.status === 401) {
           try {
             await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/refresh`, {
-              withCredentials: true
+              withCredentials: true,
             });
-            const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/me`, {
-              withCredentials: true
-            });
+            const res = await axios.get(
+              `${process.env.NEXT_PUBLIC_API_URL}/me`,
+              {
+                withCredentials: true,
+              }
+            );
             setUser(res.data);
-          } catch  {
+          } catch {
             setUser(null);
-            router.replace('/');
+            router.replace("/");
           }
         }
       } finally {
         setLoading(false);
       }
     };
-    
+
     getUser();
   }, [router]);
 
-  return { user, loading ,logout};
+  return { user, loading, logout };
 }

@@ -35,7 +35,15 @@ type Node = {
   files: File[];
 };
 
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  image: string;
+  subscribed: boolean;
+}
 type NodeProps = {
+  user: User | null;
   folder: Node;
   siblings: Node[];
   onCreateFolder: (parentFolderName: string, foldername: string) => void;
@@ -47,6 +55,7 @@ type NodeProps = {
 };
 
 const Node = ({
+  user,
   folder,
   siblings,
   onCreateFolder,
@@ -213,7 +222,17 @@ const Node = ({
               <span>{folder.name}</span>
               {!isRenamingFolder && isFolderHovered && (
                 <MoreHorizontal
-                  onClick={handleDialogBoxFolder}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (user?.subscribed) {
+                      handleDialogBoxFolder(e);
+                    } else {
+                      router.push("/dashboard/profile");
+                      toast.error(
+                        "Your free trial is over. Please subscribe to access features."
+                      );
+                    }
+                  }}
                   className="size-6 cursor-pointer"
                 />
               )}
@@ -276,6 +295,7 @@ const Node = ({
           <ul className="pl-4" key={`subfolders-${folder.id}`}>
             {folder.subfolders?.map((subfolder) => (
               <Node
+                user={user}
                 folder={subfolder}
                 siblings={folder.subfolders || []}
                 key={subfolder.id}

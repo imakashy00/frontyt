@@ -1,4 +1,5 @@
 "use client";
+import { useAuthContext } from "@/app/context/AuthContext";
 import { useContentContext } from "@/app/context/YoutubeContext";
 import {
   Dialog,
@@ -34,6 +35,8 @@ const Sidebar = () => {
   const [folderNameError, setFolderNameError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
 
+  const { user } = useAuthContext();
+
   useEffect(() => {
     const getFolders = async () => {
       try {
@@ -43,11 +46,7 @@ const Sidebar = () => {
             withCredentials: true, // Ensure cookies are sent
           }
         );
-        // handle the response here
-        // console.log(typeof res.data.folders);
-        // console.log(res.data);
         setFolders(res.data.folders);
-        // toast.success("Welcome", { style: {color:'#5d3fd3'} });
       } catch (error) {
         console.error(error);
       } finally {
@@ -72,7 +71,7 @@ const Sidebar = () => {
       .then((response) => {
         const newFolder = response.data.folder;
         setFolders((prevFolders) => [...prevFolders, newFolder]);
-        toast.success("Folder created")
+        toast.success("Folder created");
         // console.log("Folder created:", response.data);
       })
       .catch(() => {
@@ -100,7 +99,6 @@ const Sidebar = () => {
         // console.log("Inside Folder=>", response.data);
         setFolders((prev) => addFolderToParent(prev, parentId, newFolder));
         toast.success("Folder Created");
-
       })
       .catch(() => {
         toast.error("Error creating folder");
@@ -167,7 +165,6 @@ const Sidebar = () => {
           return "Notes created successfully!";
         },
         error: (error) => {
-
           // Extract specific error message from the backend response
           const errorMessage =
             error.response?.data?.detail ||
@@ -217,7 +214,7 @@ const Sidebar = () => {
       .then(() => {
         // Update state by recursively removing the folder
         setFolders((prev) => removeFolderFromTree(prev, folderId));
-        toast.success("Folder deleted")
+        toast.success("Folder deleted");
 
         // Navigate to dashboard if needed
         router.push("/dashboard");
@@ -264,7 +261,7 @@ const Sidebar = () => {
       .then(() => {
         // Use recursive function to update folder name at any level
         setFolders((prev) => renameFolderInTree(prev, folderId, newName));
-        toast.success(`Folder renamed to ${newName}`)
+        toast.success(`Folder renamed to ${newName}`);
       })
       .catch((error) => {
         toast.error("Error renaming folder:", error);
@@ -315,7 +312,7 @@ const Sidebar = () => {
         if (response.status === 200) {
           router.push("/dashboard");
         }
-        toast.success('Note Deleted')
+        toast.success("Note Deleted");
       })
       .catch((error) => {
         toast.error("Error deleting note:", error.response?.data || error);
@@ -360,7 +357,7 @@ const Sidebar = () => {
         if (response.status === 200) {
           // Update local state with recursive function
           setFolders((prev) => renameFileInTree(prev, fileId, newName));
-          toast.success(`Note renamed to ${newName}`)
+          toast.success(`Note renamed to ${newName}`);
         }
       })
       .catch((error) => {
@@ -413,8 +410,16 @@ const Sidebar = () => {
           <span> All Notes</span>
           <Button
             className="shadow-none bg-[#b19ffd] hover:bg-[#704cff]"
-            onClick={() => {
-              setIsRootFolderDialogOpen(true);
+            onClick={(e) => {
+              e.preventDefault();
+              if (user?.subscribed) {
+                setIsRootFolderDialogOpen(true);
+              } else {
+                router.push("/dashboard/profile");
+                toast.error(
+                  "Your free trial is over. Please subscribe to access features."
+                );
+              }
             }}
           >
             <Plus size={12} />
@@ -429,6 +434,7 @@ const Sidebar = () => {
             <ul className="w-full">
               {folders.map((folder) => (
                 <Node
+                  user={user}
                   folder={folder}
                   key={folder.id}
                   siblings={folders}
