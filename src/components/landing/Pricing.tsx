@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
+import { Check } from "lucide-react";
+import { useState, useEffect } from "react";
 import SignIn from "../SignIn";
 
 const Pricing = () => {
@@ -7,12 +8,12 @@ const Pricing = () => {
   const [isIndianUser, setIsIndianUser] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Define prices in USD
+  // Define base prices in USD
   const monthlyPriceUSD = 19;
   const yearlyPriceUSD = 199;
 
   // Conversion rate (1 USD ≈ 84 INR)
-  const usdToInrRate = 85;
+  const usdToInrRate = 84;
 
   // Calculate prices in INR (round to nearest whole number)
   const monthlyPriceINR = Math.round(monthlyPriceUSD * usdToInrRate);
@@ -38,6 +39,7 @@ const Pricing = () => {
         const response = await fetch("https://ipapi.co/json/");
         const data = await response.json();
         setIsIndianUser(data.country_code === "IN");
+        console.log("User country:", data.country_code);
       } catch (error) {
         console.error("Error detecting user location:", error);
         // Default to USD on error
@@ -53,7 +55,6 @@ const Pricing = () => {
   return (
     <div className="py-24 bg-white" id="pricing">
       <div className="container mx-auto px-4">
-        {/* Title section remains the same */}
         <div className="text-center mb-16 max-w-3xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             Simple Pricing
@@ -66,13 +67,53 @@ const Pricing = () => {
 
         {/* Horizontal Pricing Card */}
         <div className="max-w-4xl mx-auto bg-white rounded-xl overflow-hidden shadow-lg border border-gray-200 flex flex-col md:flex-row">
-          {/* Features List (Left Side) - unchanged */}
+          {/* Features List (Left Side) */}
           <div className="p-8 md:w-1/2 bg-gray-50">
-            {/* Features remain unchanged */}
             <h3 className="text-xl font-bold mb-6">Everything included</h3>
             <ul className="space-y-4">
-              {/* Feature items remain unchanged */}
-              {/* ... existing feature list ... */}
+              <li className="flex items-center gap-3">
+                <div className="w-5 h-5 rounded-full bg-[#5d3fd3]/10 flex items-center justify-center">
+                  <Check className="h-3 w-3 text-[#5d3fd3]" />
+                </div>
+                <span className="text-gray-700">
+                  Unlimited AI-generated notes
+                </span>
+              </li>
+              <li className="flex items-center gap-3">
+                <div className="w-5 h-5 rounded-full bg-[#5d3fd3]/10 flex items-center justify-center">
+                  <Check className="h-3 w-3 text-[#5d3fd3]" />
+                </div>
+                <span className="text-gray-700">Folder organization</span>
+              </li>
+              <li className="flex items-center gap-3">
+                <div className="w-5 h-5 rounded-full bg-[#5d3fd3]/10 flex items-center justify-center">
+                  <Check className="h-3 w-3 text-[#5d3fd3]" />
+                </div>
+                <span className="text-gray-700">
+                  Rich-text editor for customization
+                </span>
+              </li>
+              <li className="flex items-center gap-3">
+                <div className="w-5 h-5 rounded-full bg-[#5d3fd3]/10 flex items-center justify-center">
+                  <Check className="h-3 w-3 text-[#5d3fd3]" />
+                </div>
+                <span className="text-gray-700">
+                  AI chatbot for video questions
+                </span>
+              </li>
+              <li className="flex items-center gap-3">
+                <div className="w-5 h-5 rounded-full bg-[#5d3fd3]/10 flex items-center justify-center">
+                  <Check className="h-3 w-3 text-[#5d3fd3]" />
+                </div>
+                <span className="text-gray-700">Priority customer support</span>
+              </li>
+
+              <li className="flex items-center gap-3">
+                <div className="w-5 h-5 rounded-full bg-[#5d3fd3]/10 flex items-center justify-center">
+                  <Check className="h-3 w-3 text-[#5d3fd3]" />
+                </div>
+                <span className="text-gray-700">Export notes as PDF</span>
+              </li>
             </ul>
           </div>
 
@@ -81,11 +122,11 @@ const Pricing = () => {
             <h3 className="text-2xl mx-auto font-bold mb-2">Premium Plan</h3>
             <p className="text-gray-500 mx-auto mb-6">All features included</p>
 
-            {/* Billing Toggle - unchanged */}
+            {/* Billing Toggle */}
             <div className="flex items-center justify-center mb-8">
               <span
                 className={`mr-3 ${
-                  !isYearly ? " text-[#5d3fd3]" : "text-gray-500"
+                  !isYearly ? "text-[#5d3fd3]" : "text-gray-500"
                 }`}
               >
                 Monthly
@@ -105,14 +146,14 @@ const Pricing = () => {
               </button>
               <span
                 className={`ml-3 ${
-                  isYearly ? " text-[#5d3fd3]" : "text-gray-500"
+                  isYearly ? "text-[#5d3fd3]" : "text-gray-500"
                 }`}
               >
                 Yearly
               </span>
             </div>
 
-            {/* Price Display - Updated for multi-currency */}
+            {/* Price Display with Currency Detection */}
             <div className="text-center mb-8">
               {isLoading ? (
                 <div className="flex justify-center items-center h-16">
@@ -130,9 +171,9 @@ const Pricing = () => {
                 </div>
               )}
 
-              {/* Savings message */}
+              {/* Always reserve space for the savings message */}
               <div className="h-8 flex items-center justify-center">
-                {isYearly && (
+                {isYearly && !isLoading && (
                   <div className="text-sm bg-[#5d3fd3]/10 text-[#5d3fd3] py-1 px-3 rounded-full inline-block">
                     Save {currencySymbol}
                     {savings} per year
@@ -141,7 +182,15 @@ const Pricing = () => {
               </div>
             </div>
 
-            {/* CTA Button - unchanged */}
+            {/* Country Indicator (can be removed in production) */}
+            {!isLoading && (
+              <div className="text-xs text-gray-400 text-center mb-4">
+                Prices shown in{" "}
+                {isIndianUser ? "Indian Rupees (₹)" : "US Dollars ($)"}
+              </div>
+            )}
+
+            {/* CTA Button */}
             <div className="text-center mx-auto">
               <SignIn width="w-full" text="Get Started for free" />
             </div>
