@@ -22,8 +22,15 @@ import { Textarea } from "@/components/ui/textarea";
 import type { Paddle } from "@paddle/paddle-js";
 import { initializePaddle } from "@paddle/paddle-js";
 import axios from "axios";
-import { Check, Loader2, LogOut, User as UserIcon } from "lucide-react";
+import {
+  ArrowLeft,
+  Check,
+  Loader2,
+  LogOut,
+  User as UserIcon,
+} from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -42,6 +49,7 @@ const ProfilePage = () => {
   const [subscriptionDetails, setSubscriptionDetails] =
     useState<SubscribedUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
 
   // Define prices
   const monthlyPrice = 19;
@@ -62,6 +70,7 @@ const ProfilePage = () => {
           plan: response.data.plan,
           current_period_end: new Date(response.data.current_period_end),
         };
+        // console.log(response.data);
 
         setSubscriptionDetails(data);
       } catch (error) {
@@ -76,10 +85,10 @@ const ProfilePage = () => {
 
   // Initialize Paddle
   useEffect(() => {
-    const environment = process.env.NEXT_PADDLE_ENVIRONMENT || "sandbox";
-    const token = process.env.NEXT_PADDLE_TOKEN;
+    const environment = process.env.NEXT_PUBLIC_PADDLE_ENVIRONMENT || "sandbox";
+    const token = process.env.NEXT_PUBLIC_PADDLE_TOKEN;
     if (!token) {
-      console.error("Paddle token not found in environment variables");
+      toast.error("Paddle token not found in environment variables");
       return;
     }
     initializePaddle({
@@ -105,9 +114,10 @@ const ProfilePage = () => {
       toast.error("Payment system is not available");
       return;
     }
+    // toast.success("button clicked")
 
-    const yearlyPriceId = process.env.NEXT_PADDLE_PRICE_YEARLY;
-    const monthlyPriceId = process.env.NEXT_PADDLE_PRICE_MONTHLY;
+    const yearlyPriceId = process.env.NEXT_PUBLIC_PADDLE_PRICE_YEARLY;
+    const monthlyPriceId = process.env.NEXT_PUBLIC_PADDLE_PRICE_MONTHLY;
 
     if (!yearlyPriceId || !monthlyPriceId) {
       return;
@@ -178,7 +188,15 @@ const ProfilePage = () => {
   };
 
   return (
-    <div className="container p-10">
+    <div className="container p-24">
+      <Button
+        className="mb-10 text-[#5d3fd3]"
+        onClick={() => {
+          router.push("/dashboard");
+        }}
+      >
+        <ArrowLeft /> Dashboard
+      </Button>
       <h1 className="text-3xl font-bold mb-8">Account Settings</h1>
 
       {/* Two-column layout */}
@@ -271,19 +289,18 @@ const ProfilePage = () => {
                         <>
                           <div className="flex items-center gap-2">
                             <div className="bg-[#5d3fd3] text-white border rounded p-2">
-                              {subscriptionDetails?.plan === "monthly"
-                                ? "Monthly"
-                                : "Annual"}
-                              Plan
+                              {subscriptionDetails?.plan}
                             </div>
                             <div className="bg-green-500 text-white rounded p-1">
                               Active
                             </div>
                           </div>
                           <p className="text-sm text-gray-500 mt-2">
-                            {subscriptionDetails?.plan === "monthly"
-                              ? "You're currently paying $19/month"
-                              : "You're currently paying $199/year"}
+                            {subscriptionDetails?.plan === "trial"
+                              ? `Your trial ends on ${subscriptionDetails.current_period_end.toLocaleDateString()}`
+                              : subscriptionDetails?.plan === "monthly"
+                              ? `You're currently paying $19/month. Next billing date: ${subscriptionDetails?.current_period_end.toLocaleDateString()}`
+                              : `You're currently paying $199/year. Next billing date: ${subscriptionDetails?.current_period_end.toLocaleDateString()}`}
                           </p>
                         </>
                       </div>
@@ -391,26 +408,28 @@ const ProfilePage = () => {
                 )}
 
                 {/* Cancel Subscription - Keeping this section */}
-                {user?.subscribed && (
-                  <div className="pt-4 border-t">
-                    <h3 className="font-bold text-gray-700 mb-2">
-                      Cancel Subscription
-                    </h3>
-                    <p className="text-sm text-gray-500 mb-4">
-                      Your subscription will remain active until the end of the
-                      current billing period.
-                    </p>
-                    <Button
-                      variant="outline"
-                      className="text-red-500 hover:bg-red-50 hover:text-red-600 border-red-200"
-                      onClick={() => {
-                        setIsCanceling(true);
-                      }}
-                    >
-                      Cancel Subscription
-                    </Button>
-                  </div>
-                )}
+                {!isLoading &&
+                  user?.subscribed &&
+                  subscriptionDetails?.plan !== "trial" && (
+                    <div className="pt-4 border-t">
+                      <h3 className="font-bold text-gray-700 mb-2">
+                        Cancel Subscription
+                      </h3>
+                      <p className="text-sm text-gray-500 mb-4">
+                        Your subscription will remain active until the end of
+                        the current billing period.
+                      </p>
+                      <Button
+                        variant="outline"
+                        className="text-red-500 hover:bg-red-50 hover:text-red-600 border-red-200"
+                        onClick={() => {
+                          setIsCanceling(true);
+                        }}
+                      >
+                        Cancel Subscription
+                      </Button>
+                    </div>
+                  )}
               </div>
             </CardContent>
           </Card>

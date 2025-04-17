@@ -1,15 +1,19 @@
-// In Main.tsx
 "use client";
-import { useContentContext } from "@/app/context/YoutubeContext";
-import Quill from "./editor/Quill";
-import YtAi from "./YtAi";
+// import { useContentContext } from "@/app/context/YoutubeContext";
+import Quill from "../editor/Quill";
+import YtAi from "../YtAi";
 
-const Main = () => {
-  const { videoId } = useContentContext();
+type Note = {
+  videoId: string;
+  content: string;
+};
+
+const YoutubeNote = ({ videoId,con }: Note) => {
+  // const { videoId } = useContentContext();
 
   // console.log("Current videoId from context:", videoId);
 
-  const embedUrl = videoId
+  const embedUrl = note.videoId
     ? `https://www.youtube.com/embed/${videoId}`
     : "https://www.youtube.com/embed/jNQXAC9IVRw"; // Default fallback
 
@@ -34,10 +38,10 @@ const Main = () => {
       </div>
       <div className="flex w-full flex-1 h-screen">
         {/* I need to implement functionality to switch tabs to Quiz, Flash cards and Quill */}
-        <Quill/>
+        <Quill />
       </div>
     </div>
   );
 };
 
-export default Main;
+export default YoutubeNote;

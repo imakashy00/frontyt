@@ -26,7 +26,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
           <aside className="min-w-[220px] rounded-xl border-r border-[#5d3fd3]">
             <Sidebar />
           </aside>
-          {children}
+          <main>{children}</main>
         </div>
       </ContentProvider>
     </Protected>

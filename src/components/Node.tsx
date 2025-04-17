@@ -10,11 +10,14 @@ import {
   ChevronRight,
   Edit,
   File as FileIcon,
+  FileText,
   Folder,
+  Globe,
   MoreHorizontal,
+  SquarePen,
   Trash,
+  YoutubeIcon,
 } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -47,7 +50,28 @@ type NodeProps = {
   folder: Node;
   siblings: Node[];
   onCreateFolder: (parentFolderName: string, foldername: string) => void;
-  onCreateNote: (folderId: string, newNote: string, youtubeUrl: string) => void;
+  onCreateYoutubeNote: (
+    folderId: string,
+    noteName: string,
+    youtubeUrl: string,
+    noteType: string
+  ) => void;
+  onCreatePdfNote: (
+    folderId: string,
+    noteName: string,
+    pdfFile: File,
+    noteType: string
+  ) => void;
+  onCreateArticleNote: (
+    folderId: string,
+    noteName: string,
+    noteType: string
+  ) => void;
+  onCreateManualNote: (
+    folderId: string,
+    noteName: string,
+    noteType: string
+  ) => void;
   onDeleteFolder: (folderId: string) => void;
   onRenameFolder: (folderId: string, newFolderName: string) => void;
   onRenameFile: (fileId: string, newNote: string, folderId: string) => void;
@@ -59,7 +83,10 @@ const Node = ({
   folder,
   siblings,
   onCreateFolder,
-  onCreateNote,
+  onCreateYoutubeNote,
+  onCreatePdfNote,
+  onCreateArticleNote,
+  onCreateManualNote,
   onDeleteFolder,
   onRenameFolder,
   onRenameFile,
@@ -76,6 +103,7 @@ const Node = ({
   const [isRenamingFile, setIsRenamingFile] = useState<string | null>(null);
   const [newFolderName, setNewFolderName] = useState(folder.name);
   const [newNote, setNewNote] = useState("");
+  const [activeTab, setActiveTab] = useState("youtube");
   const [isDialogOpenFolder, setIsDialogOpenFolder] = useState(false);
   const [isDialogOpenFile, setIsDialogOpenFile] = useState<string | null>(null);
   const folderDialogRef = useRef<HTMLDivElement>(null);
@@ -227,7 +255,7 @@ const Node = ({
                     if (user?.subscribed) {
                       handleDialogBoxFolder(e);
                     } else {
-                      router.push("/dashboard/profile");
+                      router.push("/profile");
                       toast.error(
                         "Your free trial is over. Please subscribe to access features."
                       );
@@ -259,7 +287,7 @@ const Node = ({
             <button
               onClick={() => {
                 setIsOpenFileInput(true);
-                // onCreateNote(folder.name);
+                // onCreateYoutubeNote(folder.name);
                 setIsDialogOpenFolder(false);
               }}
               className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full"
@@ -300,7 +328,10 @@ const Node = ({
                 siblings={folder.subfolders || []}
                 key={subfolder.id}
                 onCreateFolder={onCreateFolder}
-                onCreateNote={onCreateNote}
+                onCreateYoutubeNote={onCreateYoutubeNote}
+                onCreatePdfNote={onCreatePdfNote}
+                onCreateArticleNote={onCreateArticleNote}
+                onCreateManualNote={onCreateManualNote}
                 onDeleteFolder={onDeleteFolder}
                 onRenameFolder={onRenameFolder}
                 onDeleteFile={onDeleteFile}
@@ -335,8 +366,8 @@ const Node = ({
                       />
                     </span>
                   ) : (
-                    <Link
-                      href={`/dashboard/${file.name}`}
+                    <div
+                      // href={`/dashboard/${file.name}`}
                       onClick={async (e) => {
                         e.preventDefault();
 
@@ -353,7 +384,7 @@ const Node = ({
                           setVideoId(file.video_id);
                           setFileId(response.data.note.id);
                           // console.log(response.data.note.id)
-                          router.push(`/dashboard/${file.name}`);
+                          // router.push(`/dashboard/${file.name}`);
                         } catch (error) {
                           console.error(error);
                           toast.error("Error in fetching file");
@@ -364,7 +395,7 @@ const Node = ({
                         <FileIcon size={18} />
                         {file.name}
                       </span>
-                    </Link>
+                    </div>
                   )}
                   <div className="opacity-0 group-hover/file:opacity-100 transition-opacity">
                     {!isRenamingFile && hoveredFileId === file.id && (
@@ -413,54 +444,227 @@ const Node = ({
       {isOpenFileInput && (
         <Dialog open={isOpenFileInput} onOpenChange={setIsOpenFileInput}>
           <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Create New Note</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="flex flex-col gap-2">
-                <label htmlFor="newnote">File name</label>
-                <input
-                  id="newnote"
-                  type="text"
-                  value={newNote}
-                  onChange={(e) => setNewNote(e.target.value)}
-                  className="rounded py-2 px-3 border outline-none"
-                  placeholder="Enter file name"
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <label htmlFor="url">YouTube URL</label>
-                <input
-                  id="url"
-                  type="url"
-                  value={youtubeUrl}
-                  onChange={(e) => setYoutubeUrl(e.target.value)}
-                  className="rounded py-2 px-3 border outline-none"
-                  placeholder="Enter YouTube URL"
-                />
+            <DialogTitle>Create New Note</DialogTitle>
+            {/* Replace the existing DialogHeader with this tab system */}
+            <div className="border-b mb-4">
+              <div className="flex">
+                {[
+                  {
+                    id: "youtube",
+                    icon: <YoutubeIcon size={18} />,
+                    label: "YouTube",
+                  },
+                  {
+                    id: "file",
+                    icon: <FileText size={18} />,
+                    label: "Pdf Doc",
+                  },
+                  {
+                    id: "url",
+                    icon: <Globe size={18} />,
+                    label: "Web Article",
+                  },
+                  {
+                    id: "manual",
+                    icon: <SquarePen size={18} />,
+                    label: "Manual",
+                  },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex flex-col items-center px-4 py-2 ${
+                      activeTab === tab.id
+                        ? "border-b-2 border-[#5d3fd3] text-[#5d3fd3]"
+                        : "text-gray-500 hover:text-gray-700"
+                    }`}
+                  >
+                    {tab.icon}
+                    <span className="text-xs mt-1">{tab.label}</span>
+                  </button>
+                ))}
               </div>
             </div>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setIsOpenFileInput(false)}
-                className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  if (newNote && youtubeUrl) {
-                    onCreateNote(folder.id, newNote, youtubeUrl);
-                    setIsOpenFileInput(false);
-                    setNewNote("");
-                    setYoutubeUrl(youtubeUrl);
-                  }
-                }}
-                className="px-4 py-2 text-sm text-white bg-[#5d3fd3] hover:bg-[#4f35b3] rounded"
-              >
-                Create
-              </button>
-            </div>
+
+            {/* Content based on active tab */}
+            {activeTab === "youtube" && (
+              <>
+                <div className="grid gap-4 py-2">
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="newnote">Note name</label>
+                    <input
+                      id="newnote"
+                      type="text"
+                      value={newNote}
+                      onChange={(e) => setNewNote(e.target.value)}
+                      className="rounded py-2 px-3 border outline-none"
+                      placeholder="Enter note name"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="url">YouTube URL</label>
+                    <input
+                      id="url"
+                      type="url"
+                      value={youtubeUrl}
+                      onChange={(e) => setYoutubeUrl(e.target.value)}
+                      className="rounded py-2 px-3 border outline-none"
+                      placeholder="Enter YouTube URL"
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end gap-3 mt-4">
+                  <button
+                    onClick={() => setIsOpenFileInput(false)}
+                    className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (newNote && youtubeUrl) {
+                        onCreateYoutubeNote(
+                          folder.id,
+                          newNote,
+                          youtubeUrl,
+                          activeTab
+                        );
+                        setIsOpenFileInput(false);
+                        setNewNote("");
+                        setYoutubeUrl("");
+                      }
+                    }}
+                    className="px-4 py-2 text-sm text-white bg-[#5d3fd3] hover:bg-[#4f35b3] rounded"
+                  >
+                    Create
+                  </button>
+                </div>
+              </>
+            )}
+
+            {activeTab === "file" && (
+              <>
+                <div className="grid gap-4 py-2">
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="articlename">Note name</label>
+                    <input
+                      id="articlename"
+                      type="text"
+                      value={newNote}
+                      onChange={(e) => setNewNote(e.target.value)}
+                      className="rounded py-2 px-3 border outline-none"
+                      placeholder="Enter note name"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="articlefile">Upload PDF/Document</label>
+                    <input
+                      id="articlefile"
+                      type="file"
+                      className="rounded py-2 px-3 border outline-none"
+                      accept=".pdf,.doc,.docx"
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end gap-3 mt-4">
+                  <button
+                    onClick={() => setIsOpenFileInput(false)}
+                    className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="px-4 py-2 text-sm text-white bg-[#5d3fd3] hover:bg-[#4f35b3] rounded"
+                    // onClick={createPdfNote}
+                  >
+                    Create
+                  </button>
+                </div>
+              </>
+            )}
+
+            {activeTab === "url" && (
+              <>
+                <div className="grid gap-4 py-2">
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="websitename">Note name</label>
+                    <input
+                      id="websitename"
+                      type="text"
+                      value={newNote}
+                      onChange={(e) => setNewNote(e.target.value)}
+                      className="rounded py-2 px-3 border outline-none"
+                      placeholder="Enter note name"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="websiteurl">Article URL</label>
+                    <input
+                      id="websiteurl"
+                      type="url"
+                      className="rounded py-2 px-3 border outline-none"
+                      placeholder="Enter website URL"
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end gap-3 mt-4">
+                  <button
+                    onClick={() => setIsOpenFileInput(false)}
+                    className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded"
+                  >
+                    Cancel
+                  </button>
+                  <button className="px-4 py-2 text-sm text-white bg-[#5d3fd3] hover:bg-[#4f35b3] rounded">
+                    Create
+                  </button>
+                </div>
+              </>
+            )}
+
+            {activeTab === "manual" && (
+              <>
+                <div className="grid gap-4 py-2">
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="manualname">Note name</label>
+                    <input
+                      id="manualname"
+                      type="text"
+                      value={newNote}
+                      onChange={(e) => setNewNote(e.target.value)}
+                      className="rounded py-2 px-3 border outline-none"
+                      placeholder="Enter note name"
+                    />
+                  </div>
+                  {/* <div className="flex flex-col gap-2">
+                    <label htmlFor="manualcontent">
+                      Initial content (optional)
+                    </label>
+                    <textarea
+                      id="manualcontent"
+                      rows={5}
+                      className="rounded py-2 px-3 border outline-none resize-none"
+                      placeholder="Start typing your notes..."
+                    />
+                  </div> */}
+                </div>
+                <div className="flex justify-end gap-3 mt-4">
+                  <button
+                    onClick={() => setIsOpenFileInput(false)}
+                    className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="px-4 py-2 text-sm text-white bg-[#5d3fd3] hover:bg-[#4f35b3] rounded"
+                    onClick={() => {
+                      alert("clicked");
+                    }}
+                  >
+                    Create
+                  </button>
+                </div>
+              </>
+            )}
           </DialogContent>
         </Dialog>
       )}

@@ -126,12 +126,13 @@ const Sidebar = () => {
       return node;
     });
   };
-  const createNote = (
+  const createYoutubeNote = (
     folderId: string,
-    newNote: string,
-    youtubeUrl: string
+    noteName: string,
+    youtubeUrl: string,
+    noteType: string
   ) => {
-    if (!newNote.trim() || !youtubeUrl.trim()) {
+    if (!noteName.trim() || !youtubeUrl.trim()) {
       toast.error("Note name and YouTube URL are required");
       return;
     }
@@ -143,8 +144,9 @@ const Sidebar = () => {
         `${process.env.NEXT_PUBLIC_API_URL}/note`,
         {
           folder_id: folderId,
-          name: newNote.trim(),
+          name: noteName.trim(),
           youtube_url: youtubeUrl.trim(),
+          note_type: noteType,
         },
         {
           withCredentials: true,
@@ -161,7 +163,7 @@ const Sidebar = () => {
           setContent(response.data.notes || "");
           setVideoId(response.data.video_id);
           setFileId(response.data.id);
-          router.push(`/dashboard/${newNote}`);
+          // router.push(`/dashboard/${newNote}`);
           return "Notes created successfully!";
         },
         error: (error) => {
@@ -178,6 +180,13 @@ const Sidebar = () => {
       }
     );
   };
+  // Create PdfNote
+  const createPdfNote = (
+    folderId: string,
+    noteName: string,
+    pdfFile: File,
+    noteType: string
+  ) => {toast.success("Note created")};
 
   const addFileToFolder = (
     nodes: Node[],
@@ -398,7 +407,7 @@ const Sidebar = () => {
   return (
     <div className="w-full py-4 pl-4 h-screen flex flex-col">
       {/* Header */}
-      <div className="mb-10">
+      <div className="mb-6">
         <SideHeader />
       </div>
 
@@ -415,7 +424,7 @@ const Sidebar = () => {
               if (user?.subscribed) {
                 setIsRootFolderDialogOpen(true);
               } else {
-                router.push("/dashboard/profile");
+                router.push("/profile");
                 toast.error(
                   "Your free trial is over. Please subscribe to access features."
                 );
@@ -441,7 +450,10 @@ const Sidebar = () => {
                   onRenameFile={renameFile}
                   onDeleteFile={deleteFile}
                   onCreateFolder={createFolder}
-                  onCreateNote={createNote}
+                  onCreateYoutubeNote={createYoutubeNote}
+                  onCreatePdfNote={createPdfNote}
+                  onCreateArticleNote={createArticleNote}
+                  onCreateManualNote={createManualNote}
                   onDeleteFolder={deleteFolder}
                   onRenameFolder={renameFolder}
                 />

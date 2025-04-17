@@ -15,7 +15,8 @@ export default function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  const isProtectedRoute = path.startsWith("/dashboard");
+  const isProtectedRoute =
+    path.startsWith("/dashboard") || path.startsWith("/profile");
 
   // Redirect unauthenticated users from protected routes
   if (isProtectedRoute && !accessToken && !refreshToken) {

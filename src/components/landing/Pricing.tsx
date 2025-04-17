@@ -1,56 +1,19 @@
 "use client";
 import { Check } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import SignIn from "../SignIn";
 
 const Pricing = () => {
   const [isYearly, setIsYearly] = useState(true);
-  const [isIndianUser, setIsIndianUser] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Define base prices in USD
+  // Define prices in USD only
   const monthlyPriceUSD = 19;
   const yearlyPriceUSD = 199;
 
-  // Conversion rate (1 USD ≈ 84 INR)
-  const usdToInrRate = 84;
-
-  // Calculate prices in INR (round to nearest whole number)
-  const monthlyPriceINR = Math.round(monthlyPriceUSD * usdToInrRate);
-  const yearlyPriceINR = Math.round(yearlyPriceUSD * usdToInrRate);
-
-  // Set the current pricing based on location
-  const monthlyPrice = isIndianUser ? monthlyPriceINR : monthlyPriceUSD;
-  const yearlyPrice = isIndianUser ? yearlyPriceINR : yearlyPriceUSD;
-
   // Calculate savings
-  const monthlySavingsUSD = monthlyPriceUSD * 12 - yearlyPriceUSD;
-  const monthlySavingsINR = monthlyPriceINR * 12 - yearlyPriceINR;
-  const savings = isIndianUser ? monthlySavingsINR : monthlySavingsUSD;
+  const savings = monthlyPriceUSD * 12 - yearlyPriceUSD;
 
-  // Currency symbol
-  const currencySymbol = isIndianUser ? "₹" : "$";
-
-  // Detect user's country based on IP
-  useEffect(() => {
-    const detectUserCountry = async () => {
-      try {
-        setIsLoading(true);
-        const response = await fetch("https://ipapi.co/json/");
-        const data = await response.json();
-        setIsIndianUser(data.country_code === "IN");
-        console.log("User country:", data.country_code);
-      } catch (error) {
-        console.error("Error detecting user location:", error);
-        // Default to USD on error
-        setIsIndianUser(false);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    detectUserCountry();
-  }, []);
+  // Currency symbol84;
+  const currencySymbol = "$";
 
   return (
     <div className="py-24 bg-white" id="pricing">
@@ -153,27 +116,21 @@ const Pricing = () => {
               </span>
             </div>
 
-            {/* Price Display with Currency Detection */}
+            {/* Price Display */}
             <div className="text-center mb-8">
-              {isLoading ? (
-                <div className="flex justify-center items-center h-16">
-                  <div className="w-6 h-6 border-2 border-[#5d3fd3] border-t-transparent rounded-full animate-spin"></div>
-                </div>
-              ) : (
-                <div className="flex items-center justify-center text-[#5d3fd3] mb-2">
-                  <span className="text-4xl font-bold">
-                    {currencySymbol}
-                    {isYearly ? yearlyPrice : monthlyPrice}
-                  </span>
-                  <span className="text-lg text-gray-500 font-normal ml-1">
-                    {isYearly ? "/year" : "/month"}
-                  </span>
-                </div>
-              )}
+              <div className="flex items-center justify-center text-[#5d3fd3] mb-2">
+                <span className="text-4xl font-bold">
+                  {currencySymbol}
+                  {isYearly ? yearlyPriceUSD : monthlyPriceUSD}
+                </span>
+                <span className="text-lg text-gray-500 font-normal ml-1">
+                  {isYearly ? "/year" : "/month"}
+                </span>
+              </div>
 
-              {/* Always reserve space for the savings message */}
+              {/* Savings message */}
               <div className="h-8 flex items-center justify-center">
-                {isYearly && !isLoading && (
+                {isYearly && (
                   <div className="text-sm bg-[#5d3fd3]/10 text-[#5d3fd3] py-1 px-3 rounded-full inline-block">
                     Save {currencySymbol}
                     {savings} per year
@@ -181,14 +138,6 @@ const Pricing = () => {
                 )}
               </div>
             </div>
-
-            {/* Country Indicator (can be removed in production) */}
-            {!isLoading && (
-              <div className="text-xs text-gray-400 text-center mb-4">
-                Prices shown in{" "}
-                {isIndianUser ? "Indian Rupees (₹)" : "US Dollars ($)"}
-              </div>
-            )}
 
             {/* CTA Button */}
             <div className="text-center mx-auto">

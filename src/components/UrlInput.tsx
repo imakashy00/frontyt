@@ -1,7 +1,5 @@
-
 // import { Button } from '@/components/ui/button';
-import {  SendHorizonal } from 'lucide-react';
-import React from 'react'
+import { SendHorizonal } from "lucide-react";
 
 const page = () => {
   return (
@@ -12,13 +10,20 @@ const page = () => {
           <input
             className="w-full p-5 rounded-xl border border-[#5d3fd3ef] outline-none focus:border-[#5d3fd3] text-xl"
             type="text"
-            placeholder="https://youtu.be/j63bBK_ct-M"
+            placeholder="https://youtube/j63bBK_ct-M"
           />
-          <button className="flex items-center justify-center w-[50px] h-[50px] absolute right-5 bg-[#5d3fd3] text-white  rounded-lg" title="Send"> <SendHorizonal size={32}/><span className="sr-only">Send</span></button>
+          <button
+            className="flex items-center justify-center w-[50px] h-[50px] absolute right-5 bg-[#5d3fd3] text-white  rounded-lg"
+            title="Send"
+          >
+            {" "}
+            <SendHorizonal size={32} />
+            <span className="sr-only">Send</span>
+          </button>
         </div>
       </div>
     </div>
   );
-}
+};
 
-export default page
+export default page;
